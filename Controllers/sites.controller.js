@@ -2,7 +2,7 @@ import SitesModel from "../Models/Sites.model.js";
 
 export const createSite = async (req, res) => {
   try {
-    const { id } = req.user;
+    const { engineerId } = req.user;
     const { siteName, siteAddress } = req.body;
     if (!siteName || !siteAddress)
       return res.status(400).json({
@@ -11,7 +11,7 @@ export const createSite = async (req, res) => {
     const site = await SitesModel.create({
       siteName,
       siteAddress,
-      engineerId: id,
+      engineerId,
     });
     await site.save();
     res.status(200).json({
@@ -19,9 +19,10 @@ export const createSite = async (req, res) => {
       site,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: "Internal server error",
-      error,
+      error: error.message,
     });
   }
 };

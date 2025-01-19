@@ -6,9 +6,11 @@ import supervisorRoutes from "./Routes/supervisors.routes.js";
 
 import PurchaseOrders from "./Routes/purchaseOrders.routes.js";
 import sites from "./Routes/sites.routes.js";
+import auth from "./Routes/auth.routes.js";
 import testing from "./testing/testing.routes.js";
 
 export const routing = (app) => {
+  app.use("/api/auth", auth);
   app.use("/api/client", clientRoutes);
   app.use("/api/product", productRoutes);
   app.use("/api/labour", labourRoutes);

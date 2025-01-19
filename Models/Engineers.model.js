@@ -58,7 +58,6 @@ const EngineersSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"], // Enforce password strength
-      select: false, // Prevents password from being returned in queries by default
     },
   },
   {
