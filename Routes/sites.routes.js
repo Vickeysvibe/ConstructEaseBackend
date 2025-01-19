@@ -5,7 +5,7 @@ import { verifyToken } from "../Middlewares/auth.middleware.js";
 const router = express.Router();
 
 router.post("/create", verifyToken, createSite);
-router.put("/:siteId/edit", editSite);
+router.put("/:siteId/edit", verifyToken, editSite);
 // router.delete("/:siteId", editSite); delete has more logic than expected
 
 export default router;
