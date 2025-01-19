@@ -1,5 +1,11 @@
 import express from "express";
-import { createSupervisor, updateSupervisor, getAllSupervisors, getSupervisorById, uploadExcel } from "../Controllers/supervisor.controller.js";
+import {
+  createSupervisor,
+  updateSupervisor,
+  getSupervisorsBySite,
+  getSupervisorById,
+  uploadExcel,
+} from "../Controllers/supervisor.controller.js";
 
 const router = express.Router();
 
@@ -7,7 +13,7 @@ router.post("/create", createSupervisor);
 
 router.put("/update/:supervisorId", updateSupervisor);
 
-router.get("/getsuppervisors", getAllSupervisors);
+router.get("/getsuppervisors/:siteId", getSupervisorsBySite);
 
 router.get("/getbyid/:supervisorId", getSupervisorById);
 
