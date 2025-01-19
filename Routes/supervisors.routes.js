@@ -1,5 +1,5 @@
 import express from "express";
-import { createSupervisor, updateSupervisor, getAllSupervisors, getSupervisorById, uploadExcel } from "../Controllers/SupervisorController.js";
+import { createSupervisor, updateSupervisor, getAllSupervisors, getSupervisorById, uploadExcel } from "../Controllers/supervisor.controller.js";
 
 const router = express.Router();
 
