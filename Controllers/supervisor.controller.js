@@ -5,15 +5,15 @@ import XLSX from "xlsx";
 export const createSupervisor = async (req, res) => {
     try {
         const { name, email, address, phoneNo, password, role, engineerId } = req.body;
-        const { siteId } = req.query;  
+        const { siteId } = req.query;
 
-        
+
         const supervisorExists = await Supervisors.findOne({ email });
         if (supervisorExists) {
             return res.status(400).json({ message: "Supervisor with this email already exists" });
         }
 
-        
+
         const newSupervisor = new Supervisors({ name, email, address, phoneNo, password, role, engineerId });
         await newSupervisor.save();
 
@@ -37,7 +37,7 @@ export const updateSupervisor = async (req, res) => {
     try {
         const { supervisorId } = req.params;
         const updatedData = req.body;
-        const { siteId } = req.query;  
+        const { siteId } = req.query;
 
         const updatedSupervisor = await Supervisors.findByIdAndUpdate(supervisorId, updatedData, { new: true });
         if (!updatedSupervisor) {
@@ -68,7 +68,7 @@ export const getSupervisorsBySite = async (req, res) => {
         const { siteId } = req.params;
 
         const site = await Sites.findById(siteId).populate("supervisorsId");
-        
+
         if (!site) {
             return res.status(404).json({ message: "Site not found" });
         }
@@ -99,8 +99,8 @@ export const getSupervisorById = async (req, res) => {
 
 export const uploadExcel = async (req, res) => {
     try {
-        const { engineerId } = req.query;  
-        const { siteId } = req.query;  
+        const { engineerId } = req.query;
+        const { siteId } = req.query;
 
         if (!req.files || !req.files.file) {
             return res.status(400).json({ message: "No file uploaded" });
@@ -123,10 +123,10 @@ export const uploadExcel = async (req, res) => {
             return res.status(400).json({ error: "No valid data found in the file" });
         }
 
-        
+
         const savedSupervisors = await Supervisors.insertMany(supervisors);
 
-        
+
         if (siteId) {
             const site = await Sites.findById(siteId);
             if (!site) {
@@ -144,6 +144,33 @@ export const uploadExcel = async (req, res) => {
         }
 
         res.status(200).json({ message: "Supervisors uploaded successfully", supervisors: savedSupervisors });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+export const deleteSupervisor = async (req, res) => {
+    try {
+        const { supervisorId } = req.params;
+        const { siteId } = req.query;
+
+
+        const deletedSupervisor = await Supervisors.findByIdAndDelete(supervisorId);
+
+        if (!deletedSupervisor) {
+            return res.status(404).json({ message: "Supervisor not found" });
+        }
+
+        if (siteId) {
+            const site = await Sites.findById(siteId);
+            if (!site) {
+                return res.status(404).json({ message: "Site not found" });
+            }
+
+            site.supervisorsId = site.supervisorsId.filter(id => id.toString() !== supervisorId);
+            await site.save();
+        }
+
+        res.status(200).json({ message: "Supervisor deleted successfully", supervisor: deletedSupervisor });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

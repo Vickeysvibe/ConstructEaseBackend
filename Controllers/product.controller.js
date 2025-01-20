@@ -1,3 +1,5 @@
+import Products from "../Models/Products.model.js"
+
 export const createProduct = async (req, res) => {
     try {
         const { name, description, category, unit } = req.body;
@@ -108,5 +110,21 @@ export const uploadExcel = async (req, res) => {
             message: error.message,
             redirectUrl: 'http://.....'
         });
+    }
+};
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+
+        const deletedProduct = await Products.findByIdAndDelete(productId);
+
+        if (!deletedProduct) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        res.status(200).json({ message: "Product deleted successfully", product: deletedProduct });
+    } catch (error) {
+        res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };

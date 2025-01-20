@@ -86,3 +86,22 @@ export const uploadExcel = async (req, res) => {
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };
+
+
+export const deleteLabour = async (req, res) => {
+    try {
+        const { labourId } = req.params;
+
+        const deletedLabour = await Labours.findByIdAndDelete(labourId);
+
+        if (!deletedLabour) {
+            return res.status(404).json({ error: "Labour not found" });
+        }
+
+        res.status(200).json({ message: "Labour deleted successfully", labour: deletedLabour });
+    } catch (error) {
+        res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
+    }
+};
+
+

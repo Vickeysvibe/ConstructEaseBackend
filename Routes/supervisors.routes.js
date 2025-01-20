@@ -19,4 +19,7 @@ router.get("/getbyid/:supervisorId", getSupervisorById);
 
 router.post("/upload", uploadExcel);
 
+router.delete("/deletesupervisor/:supervisorId", deleteSupervisor); 
+
+
 export default router;

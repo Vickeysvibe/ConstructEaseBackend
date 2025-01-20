@@ -8,5 +8,6 @@ router.put("/update-labour/:labourId", updateLabour);
 router.get("/getAll", getAllLabours);
 router.get("/getById/:labourId", getLabourById);
 router.post("/upload", uploadExcel);
+router.delete("/labours/:labourId", deleteLabour); 
 
 export default router;

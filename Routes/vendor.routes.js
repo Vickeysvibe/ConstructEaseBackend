@@ -3,10 +3,12 @@ import { createVendor, updateVendor, getAllVendors, getVendorById, uploadExcel }
 
 const router = express.Router();
 
-router.post("/create", createVendor);
+router.post("/createvendor", createVendor);
 router.put("/update-vendor/:vendorId", updateVendor);
-router.get("/getAll", getAllVendors);
-router.get("/getById/:vendorId", getVendorById);
-router.post("/upload", uploadExcel);
+router.get("/getAllvendor", getAllVendors);
+router.get("/getvendorById/:vendorId", getVendorById);
+router.post("/upload-vendor", uploadExcel);
+router.delete("/deletevendors/:vendorId", deleteVendor);
+
 
 export default router;

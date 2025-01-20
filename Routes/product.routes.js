@@ -8,5 +8,7 @@ router.put("/update-product/:productId", updateProduct);
 router.get("/getAll-product", getAllProducts);
 router.get("/getById/:productId", getProductById);
 router.post("/upload-product", uploadExcel);
+router.delete("/deleteproduct/:productId", deleteProduct); 
+
 
 export default router;

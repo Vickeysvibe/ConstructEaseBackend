@@ -94,3 +94,20 @@ export const uploadExcel = async (req, res) => {
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };
+
+export const deleteVendor = async (req, res) => {
+    try {
+        const { vendorId } = req.params;
+
+        const deletedVendor = await Vendors.findByIdAndDelete(vendorId);
+
+        if (!deletedVendor) {
+            return res.status(404).json({ error: "Vendor not found" });
+        }
+
+        res.status(200).json({ message: "Vendor deleted successfully", vendor: deletedVendor });
+    } catch (error) {
+        res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
+    }
+};
+
