@@ -31,10 +31,6 @@ secrets.json
 .env
 .env.*
 
-# Temporary files
-testing/
-*.log
-*.pid
-*.sock
+
 Explanation of excluded files and directories:
 
