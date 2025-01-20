@@ -21,14 +21,14 @@ const SiteSchema = new mongoose.Schema(
       type: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Supervisors", // Reference to a Supervisors model
+          ref: "Supervisors", 
         },
       ],
       default: [],
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true, 
   }
 );
 
