@@ -65,16 +65,23 @@ export const updateSupervisor = async (req, res) => {
 
 export const getSupervisorsBySite = async (req, res) => {
     try {
-        const { siteId } = req.params;
+        const { siteId } = req.query;
 
-        const site = await Sites.findById(siteId).populate("supervisorsId");
+        if (!siteId) {
+            return res.status(400).json({ message: "Site ID is required" });
+        }
+
+        const site = await Sites.findById(siteId).populate({
+            path: "supervisorsId",
+            match: { isDel: false }  
+        });
 
         if (!site) {
             return res.status(404).json({ message: "Site not found" });
         }
 
-        if (site.supervisorsId.length === 0) {
-            return res.status(404).json({ message: "No supervisors assigned to this site" });
+        if (!site.supervisorsId || site.supervisorsId.length === 0) {
+            return res.status(404).json({ message: "No active supervisors assigned to this site" });
         }
 
         res.status(200).json(site.supervisorsId);
@@ -82,6 +89,8 @@ export const getSupervisorsBySite = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
 export const getSupervisorById = async (req, res) => {
     try {
         const { supervisorId } = req.params;
@@ -153,10 +162,13 @@ export const deleteSupervisor = async (req, res) => {
         const { supervisorId } = req.params;
         const { siteId } = req.query;
 
+        const updatedSupervisor = await Supervisors.findByIdAndUpdate(
+            supervisorId,
+            { isDel: true },
+            { new: true } 
+        );
 
-        const deletedSupervisor = await Supervisors.findByIdAndDelete(supervisorId);
-
-        if (!deletedSupervisor) {
+        if (!updatedSupervisor) {
             return res.status(404).json({ message: "Supervisor not found" });
         }
 
@@ -170,9 +182,10 @@ export const deleteSupervisor = async (req, res) => {
             await site.save();
         }
 
-        res.status(200).json({ message: "Supervisor deleted successfully", supervisor: deletedSupervisor });
+        res.status(200).json({ message: "Supervisor marked as deleted successfully", supervisor: updatedSupervisor });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
