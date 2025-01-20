@@ -1,3 +1,4 @@
+import MaterialsModel from "../Models/Materials.model.js";
 import ProductsModel from "../Models/Products.model.js";
 import PurchaseOrdersModel from "../Models/PurchaseOrders.model.js";
 import PurchaseReturnsModel from "../Models/PurchaseReturns.model.js";
@@ -51,6 +52,33 @@ export const getPo = async (req, res) => {
     if (!pos.siteId)
       return res.status(404).json({ message: "No purchase orders found" });
     res.status(200).json(pos);
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
+  }
+};
+
+//get particular Purchase order for pr
+export const getPoForPr = async (req, res) => {
+  try {
+    const { poid } = req.params;
+    const pos = await PurchaseOrdersModel.findById(poid).populate(
+      "vendorId siteId"
+    );
+    let materials = [];
+    pos.order.forEach(async (item) => {
+      const mat = await MaterialsModel.find({
+        productId: item.productId,
+      }).populate("productId");
+      if (mat.length > 0) {
+        materials.push(mat);
+      }
+    });
+    if (!pos.siteId)
+      return res.status(404).json({ message: "No purchase orders found" });
+    res.status(200).json({ pos: pos, materials: materials });
   } catch (error) {
     console.log(error);
     res

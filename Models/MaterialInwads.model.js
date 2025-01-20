@@ -7,17 +7,15 @@ const MaterialInwardSchema = new mongoose.Schema(
       ref: "PurchaseOrders",
       required: true,
     },
-    order: [
-      {
-        productId: {
+    materials: {
+      type: [
+        {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Products",
-          required: true,
+          ref: "Materials",
         },
-        suppliedQty: { type: Number, required: true },
-        unitPrice: { type: Number, required: true },
-      },
-    ],
+      ],
+      default: [],
+    },
     subTotal: { type: Number, required: true },
     tax: { type: Number, required: true },
     grandTotal: { type: Number, required: true },
