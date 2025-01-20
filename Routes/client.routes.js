@@ -5,6 +5,7 @@ import {
     getAllClients,
     getClientById,
     upload,
+    deleteClient,
 } from "../Controllers/client.controller.js"; 
 
 const router = express.Router();

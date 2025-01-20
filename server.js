@@ -6,11 +6,16 @@ import dotenv from "dotenv";
 import connectDB from "./Configs/mongoDbConfig.js";
 import { routing } from "./routes.js"; // Import the routing function
 import fileUpload from "express-fileupload";
+import loggerMiddleware from "./Middlewares/logger.middleware.js"
+
 
 
 dotenv.config();
 
 const app = express();
+
+app.use(loggerMiddleware);
+
 
 // Middleware
 app.use(cors());

@@ -1,5 +1,5 @@
 import express from "express";
-import { createVendor, updateVendor, getAllVendors, getVendorById, uploadExcel } from "../Controllers/vendor.controller.js";
+import { createVendor, updateVendor, getAllVendors, getVendorById, uploadExcel, deleteVendor } from "../Controllers/vendor.controller.js";
 
 const router = express.Router();
 

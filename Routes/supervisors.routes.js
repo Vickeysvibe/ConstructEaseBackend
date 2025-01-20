@@ -5,6 +5,7 @@ import {
   getSupervisorsBySite,
   getSupervisorById,
   uploadExcel,
+  deleteSupervisor,
 } from "../Controllers/supervisor.controller.js";
 
 const router = express.Router();
