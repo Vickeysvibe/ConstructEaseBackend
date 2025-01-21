@@ -18,7 +18,6 @@ export const attendance = async (req, res) => {
   
       const currentDate = new Date().setHours(0, 0, 0, 0);
   
-      // Check if a document for the same siteId and date already exists
       let attendanceDoc = await LabourAttendanceModel.findOne({
         siteId,
         date: currentDate,
@@ -192,3 +191,4 @@ export const getSupervisors = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
