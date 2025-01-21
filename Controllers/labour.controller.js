@@ -34,12 +34,11 @@ export const getAllLabours = async (req, res) => {
     try {
         const { siteId } = req.query;
         let labours;
-
+        const query = { isDel: false };
         if (siteId) {
-            labours = await Labours.find({ siteId }).populate("siteId", "name");
-        } else {
-            labours = await Labours.find().populate("siteId", "name");
+            query.siteId = siteId;
         }
+        labours = await Labours.find(query).populate("siteId", "name");
 
         res.status(200).json(labours);
     } catch (error) {
@@ -86,3 +85,27 @@ export const uploadExcel = async (req, res) => {
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };
+
+
+export const deleteLabour = async (req, res) => {
+    try {
+        const { labourId } = req.params;
+
+        const updatedLabour = await Labours.findByIdAndUpdate(
+            labourId,
+            { isDel: true },  
+            { new: true }      
+        );
+
+        if (!updatedLabour) {
+            return res.status(404).json({ error: "Labour not found" });
+        }
+
+        res.status(200).json({ message: "Labour marked as deleted successfully", labour: updatedLabour });
+    } catch (error) {
+        res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
+    }
+};
+
+
+

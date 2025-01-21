@@ -7,6 +7,11 @@ const LabourSchema = new mongoose.Schema(
     category: { type: String, required: true },
     subCategory: { type: String, required: true },
     wagesPerShift: { type: Number, required: true },
+    isDel:{
+      type: Boolean,
+      default: false
+
+    },
     siteId: {
       type: [
         {
@@ -16,6 +21,7 @@ const LabourSchema = new mongoose.Schema(
       ],
       default: [],
     },
+
   },
   { timestamps: true }
 );

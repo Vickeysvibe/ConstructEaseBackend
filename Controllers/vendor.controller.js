@@ -1,10 +1,21 @@
 import Vendors from "../Models/Vendors.model.js";
+import PurchaseOrders from "../Models/PurchaseOrders.model.js"
 import XLSX from "xlsx";
 
 export const createVendor = async (req, res) => {
     try {
         const { name, ownerName, address, gstIn, phoneNo } = req.body;
         const { siteId } = req.query;
+        if (!name || !ownerName || !address || !gstIn || !phoneNo || !siteId) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+        const existingVendor =  Vendors.findOne({ name, siteId })
+        if(existingVendor)
+        {
+            return res.status(400).json({
+                message : "existing vendor"
+            })
+        }
         const newVendor = new Vendors({ name, ownerName, address, gstIn, phoneNo, siteId });
         await newVendor.save();
         res.status(201).json({ message: "Vendor created successfully", vendor: newVendor });
@@ -94,3 +105,31 @@ export const uploadExcel = async (req, res) => {
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };
+
+export const deleteVendor = async (req, res) => {
+    try {
+        const { vendorId } = req.params;
+        const siteId = req.query;
+        const existingPurchaseOrder = await PurchaseOrders.findOne({
+            vendorId: vendorId,
+            siteId: siteId
+        });
+        
+        if (existingPurchaseOrder) {
+            return res.status(400).json({
+                message: "Cannot delete vendor because it is associated with a purchase order."
+            });
+        }
+
+        const deletedVendor = await Vendors.findByIdAndDelete(vendorId);
+
+        if (!deletedVendor) {
+            return res.status(404).json({ error: "Vendor not found" });
+        }
+
+        res.status(200).json({ message: "Vendor deleted successfully", vendor: deletedVendor });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

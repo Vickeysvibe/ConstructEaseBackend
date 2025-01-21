@@ -1,17 +1,38 @@
+import Products from "../Models/Products.model.js"
+import PurchaseOrders from "../Models/PurchaseOrders.model.js";
+
+
 export const createProduct = async (req, res) => {
-    try {
-        const { name, description, category, unit } = req.body;
-        const { siteId } = req.query;
-        const newProduct = new Products({ name, description, category, unit, siteId });
-        await newProduct.save();
-        res.status(201).json({ message: "Product created successfully", product: newProduct });
-    } catch (error) {
-        res.status(500).json({
-            message: error.message,
-            redirectUrl: 'http://.....'
-        });
+  try {
+    const { name, description, category, unit } = req.body;
+    const { siteId } = req.query;
+
+    if (!name || !description || !category || !unit || !siteId) {
+      return res.status(400).json({ message: "All fields are required" });
     }
+
+    const existingProduct = await Products.findOne({ name, siteId });
+
+    if (existingProduct) {
+      return res.status(400).json({ message: "Product with this name already exists in this site" });
+    }
+
+    const newProduct = new Products({ name, description, category, unit, siteId });
+    await newProduct.save();
+
+    return res.status(201).json({ 
+      message: "Product created successfully", 
+      product: newProduct 
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Internal server error", 
+      error: error.message 
+    });
+  }
 };
+
 
 export const updateProduct = async (req, res) => {
     try {
@@ -108,5 +129,32 @@ export const uploadExcel = async (req, res) => {
             message: error.message,
             redirectUrl: 'http://.....'
         });
+    }
+};
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const siteId = req.query;
+        const existingPurchaseOrder = await PurchaseOrders.findOne({
+            siteId: siteId,
+            "order.productId": productId
+        });
+
+        if (existingPurchaseOrder) {
+            return res.status(400).json({ 
+                error: "Cannot delete product because it is associated with a purchase order." 
+            });
+        }
+       
+        const deletedProduct = await Products.findByIdAndDelete(productId);
+
+        if (!deletedProduct) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        res.status(200).json({ message: "Product deleted successfully", product: deletedProduct });
+    } catch (error) {
+        res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };

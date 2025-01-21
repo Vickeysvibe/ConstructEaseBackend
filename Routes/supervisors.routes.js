@@ -5,6 +5,7 @@ import {
   getSupervisorsBySite,
   getSupervisorById,
   uploadExcel,
+  deleteSupervisor,
 } from "../Controllers/supervisor.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 
@@ -19,5 +20,8 @@ router.get("/getsuppervisors/:siteId", verifyToken, getSupervisorsBySite);
 router.get("/getbyid/:supervisorId", verifyToken, getSupervisorById);
 
 router.post("/upload", verifyToken, uploadExcel);
+
+router.delete("/deletesupervisor/:supervisorId", deleteSupervisor); 
+
 
 export default router;

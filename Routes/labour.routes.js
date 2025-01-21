@@ -5,6 +5,7 @@ import {
   getAllLabours,
   getLabourById,
   uploadExcel,
+  deleteLabour,
 } from "../Controllers/labour.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 
@@ -15,5 +16,6 @@ router.put("/update-labour/:labourId", verifyToken, updateLabour);
 router.get("/getAll", verifyToken, getAllLabours);
 router.get("/getById/:labourId", verifyToken, getLabourById);
 router.post("/upload", verifyToken, uploadExcel);
+router.delete("/labours/:labourId",verifyToken, deleteLabour); 
 
 export default router;

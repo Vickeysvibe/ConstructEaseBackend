@@ -128,3 +128,23 @@ export const upload = async (req, res) => {
         });
     }
 };
+
+export const deleteClient = async (req, res) => {
+    try {
+        const { clientId } = req.params;
+
+        const deletedClient = await Clients.findByIdAndDelete(clientId);
+
+        if (!deletedClient) {
+            return res.status(404).json({ error: "Client not found" });
+        }
+
+        res.status(200).json({ message: "Client deleted successfully", client: deletedClient });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            redirectUrl: 'http://.....', 
+        });
+    }
+};
+

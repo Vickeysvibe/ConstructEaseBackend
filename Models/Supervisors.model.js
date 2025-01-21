@@ -42,6 +42,11 @@ const SupervisorSchema = new mongoose.Schema(
       ref: "Engineers",
       required: true,
     },
+    isDel:{
+      type: Boolean,
+      default: false
+
+    },
   },
   { timestamps: true }
 );

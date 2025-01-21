@@ -5,6 +5,7 @@ import {
   getAllClients,
   getClientById,
   upload,
+  deleteClient,
 } from "../Controllers/client.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 
@@ -24,5 +25,7 @@ router.get("/get/:clientId", verifyToken, getClientById);
 
 // Upload clients via Excel file (siteId required in query)
 router.post("/upload", verifyToken, upload);
+
+router.delete("/deleteclient/:clientId", deleteClient);
 
 export default router;

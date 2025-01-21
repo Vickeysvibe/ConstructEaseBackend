@@ -5,6 +5,7 @@ import {
   getAllProducts,
   getProductById,
   uploadExcel,
+  deleteProduct,
 } from "../Controllers/product.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 
@@ -15,5 +16,7 @@ router.put("/update-product/:productId", verifyToken, updateProduct);
 router.get("/getAll-product", verifyToken, getAllProducts);
 router.get("/getById/:productId", verifyToken, getProductById);
 router.post("/upload-product", verifyToken, uploadExcel);
+router.delete("/deleteproduct/:productId",verifyToken, deleteProduct); 
+
 
 export default router;
