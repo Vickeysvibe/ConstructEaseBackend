@@ -1,5 +1,5 @@
 import MaterialInwadsModel from "../Models/MaterialInwads.model.js";
-import MaterialOutwardsModel from "../Models/MaterialOutwards.model.js";
+import MaterialsModel from "../Models/Materials.model.js";
 
 //get list of Material Inwards
 export const getAllMaterialInwards = async (req, res) => {
@@ -7,21 +7,6 @@ export const getAllMaterialInwards = async (req, res) => {
   if (!siteId) return res.status(400).json({ message: "Site ID is required" });
   try {
     const materials = await MaterialInwadsModel.find({ siteId: siteId })
-      .populate("POid", "vendorId")
-      .populate("POid.vendorId", "name");
-    res.status(200).json(materials);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-};
-
-//get list of Material Outwards
-export const getAllMaterialOutwards = async (req, res) => {
-  const { siteId } = req.params;
-  if (!siteId) return res.status(400).json({ message: "Site ID is required" });
-  try {
-    const materials = await MaterialOutwardsModel.find({ siteId: siteId })
-      .populate("materialInwardId", "POid")
       .populate("POid", "vendorId")
       .populate("POid.vendorId", "name");
     res.status(200).json(materials);
@@ -48,37 +33,35 @@ export const getMaterialInwardById = async (req, res) => {
   }
 };
 
-//get MaterialOutward details by ID
-export const getMaterialOutwardById = async (req, res) => {
-  try {
-    const { MIid } = req.params;
-    const { siteId } = req.query;
-    if (!MIid || !siteId)
-      return res.status(400).json({ message: "MI ID and siteId is required" });
-    const MI = await MaterialOutwardsModel.findOne({
-      _id: MIid,
-      siteId: siteId,
-    })
-      .populate("materialInwardId")
-      .populate("order.productId")
-      .populate("materialInwardId.POid")
-      .populate("materialInwardId.POid.vendorId")
-      .populate("materialInwardId.order.productId");
-    res.status(200).json(MI);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-};
-
 //create MaterialInward
 export const createMaterialInward = async (req, res) => {
-  const { POid, order, subTotal, tax, grandTotal, siteId } = req.body;
-  if (!POid || !order || !subTotal || !tax || !grandTotal || !siteId)
+  const { POid, vendorId, order, subTotal, tax, grandTotal, siteId } = req.body;
+  if (
+    !POid ||
+    !order ||
+    !vendorId ||
+    !subTotal ||
+    !tax ||
+    !grandTotal ||
+    !siteId
+  )
     return res.status(400).json({ message: "Fill all the fields" });
   try {
+    let matIds = [];
+    order?.forEach((product) => {
+      const newMat = new MaterialsModel({
+        productId: product.productId,
+        suppliedQty: product.suppliedQty,
+        siteId,
+        fromVendor: vendorId,
+        unitPrice: product.unitPrice,
+      });
+      newMat.save();
+      matIds.push(newMat._id);
+    });
     const newMI = new MaterialInwadsModel({
       POid,
-      order,
+      materials: matIds,
       subTotal,
       tax,
       grandTotal,
@@ -87,24 +70,36 @@ export const createMaterialInward = async (req, res) => {
     await newMI.save();
     res.status(200).json(newMI);
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json({ message: error.message });
   }
 };
 
-//create materialOutward
-export const createMaterialOutward = async (req, res) => {
-  const { materialInwardId, order, siteId } = req.body;
-  if (!materialInwardId || !order || !siteId)
-    return res.status(400).json({ message: "Fill all the fields" });
+//get Materials
+export const getMaterials = async (req, res) => {
   try {
-    const newMO = new MaterialOutwardsModel({
-      materialInwardId,
-      order,
-      siteId,
-    });
-    await newMO.save();
-    res.status(200).json(newMO);
+    const { siteId } = req.query;
+    if (!siteId)
+      return res.status(400).json({ message: "Site ID is required" });
+    await MaterialsModel.find({ siteId: siteId })
+      .populate("productId")
+      .populate("fromVendor", "name");
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//create Materials
+export const editMaterial = async (req, res) => {
+  const { matId } = req.params;
+  try {
+    const mat = await MaterialsModel.findById(matId);
+    if (!mat) return res.status(404).json({ message: "Material not found" });
+    const { usedQty } = req.body;
+    mat.usedQty = usedQty;
+    mat.availableQty = mat.availableQty - usedQty;
+    await mat.save();
+    res.status(200).json(mat);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
