@@ -1,14 +1,34 @@
 import Todos from "../Models/Todos.model.js";
 import Sites from "../Models/Sites.model.js";
 
+
 export const createTodo = async (req, res) => {
     try {
         const { task, start, end, additionalCols } = req.body;
         const { siteId } = req.query;
 
+        if (!siteId || !task || !start || !end) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
         const site = await Sites.findById(siteId);
         if (!site) {
             return res.status(404).json({ message: "Site not found" });
+        }
+
+        const newColumns = Object.keys(additionalCols || {});
+
+        if (newColumns.length > 0) {
+            const existingTodos = await Todos.find({ siteId });
+
+            if (existingTodos.length > 0) {
+                const updateFields = {};
+                newColumns.forEach((col) => {
+                    updateFields[`additionalCols.${col}`] = "";
+                });
+
+                await Todos.updateMany({ siteId }, { $set: updateFields });
+            }
         }
 
         const newTodo = new Todos({
@@ -21,10 +41,44 @@ export const createTodo = async (req, res) => {
 
         await newTodo.save();
         res.status(201).json({ message: "Todo created successfully", todo: newTodo });
+
     } catch (error) {
-        res.status(500).json({ message: error.message,redirectUrl: 'http://.....'  });
+        res.status(500).json({ message: error.message });
     }
 };
+
+
+
+export const addColumn = async (req, res) => {
+    try {
+        const { siteId } = req.query;
+        const { columnName } = req.body;
+
+        if (!siteId || !columnName) {
+            return res.status(400).json({ message: "Site ID and column name are required" });
+        }
+
+        if (/^[@.$#]/.test(columnName)) {
+            return res.status(400).json({ message: "Column name must not start with @, ., $, or #" });
+        }
+
+        const existingTodos = await Todos.find({ siteId });
+
+        if (existingTodos.length === 0) {
+            return res.status(404).json({ message: "No todos found for this site" });
+        }
+
+        const updateFields = {};
+        updateFields[`additionalCols.${columnName}`] = "";
+
+        await Todos.updateMany({ siteId }, { $set: updateFields });
+
+        res.status(200).json({ message: `Column '${columnName}' added successfully to all todos for site ${siteId}` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 export const getAllTodos = async (req, res) => {
     try {
@@ -59,18 +113,27 @@ export const getTodoById = async (req, res) => {
 
 export const updateTodo = async (req, res) => {
     try {
-        const { todoId } = req.params; 
-        const { task, start, end, additionalCols } = req.body; 
+        const { todoId } = req.params;
+        const { task, start, end, additionalCols } = req.body;
+
+
+        if (additionalCols) {
+            for (const key in additionalCols) {
+                if (/^[@.$#]/.test(key)) {
+                    return res.status(400).json({ message: `Column name '${key}' must not start with @, ., $, or #` });
+                }
+            }
+        }
 
         
         const updatedTodo = await Todos.findByIdAndUpdate(
             todoId,
             {
                 $set: {
-                    ...(task && { task }), 
+                    ...(task && { task }),
                     ...(start && { start }),
                     ...(end && { end }),
-                    ...(additionalCols && { additionalCols }), 
+                    ...(additionalCols && { additionalCols }),
                 },
             },
             { new: true } 
@@ -87,6 +150,8 @@ export const updateTodo = async (req, res) => {
 };
 
 
+
+
 export const deleteTodo = async (req, res) => {
     try {
         const { todoId } = req.params;
@@ -101,3 +166,69 @@ export const deleteTodo = async (req, res) => {
         res.status(500).json({ message: error.message,redirectUrl: 'http://.....'  });
     }
 };
+
+export const deleteColumn = async (req, res) => {
+    try {
+        const { siteId } = req.query;
+        const { columnName } = req.body;
+
+        if (!siteId || !columnName) {
+            return res.status(400).json({ message: "Site ID and column name are required" });
+        }
+
+        if (/^[@.$#]/.test(columnName)) {
+            return res.status(400).json({ message: "Column name must not start with @, ., $, or #" });
+        }
+
+        const existingTodos = await Todos.find({ siteId });
+
+        if (existingTodos.length === 0) {
+            return res.status(404).json({ message: "No todos found for this site" });
+        }
+
+        const updateFields = {};
+        updateFields[`additionalCols.${columnName}`] = 1;
+
+        await Todos.updateMany({ siteId }, { $unset: updateFields });
+
+        res.status(200).json({ message: `Column '${columnName}' deleted successfully from all todos for site ${siteId}` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+export const editColumn = async (req, res) => {
+    try {
+        const { siteId } = req.query;
+        const { oldColumnName, newColumnName } = req.body;
+
+        if (!siteId || !oldColumnName || !newColumnName) {
+            return res.status(400).json({ message: "Site ID, old column name, and new column name are required" });
+        }
+
+        if (/^[@.$#]/.test(newColumnName)) {
+            return res.status(400).json({ message: "New column name must not start with @, ., $, or #" });
+        }
+
+        const existingTodos = await Todos.find({ siteId });
+
+        if (existingTodos.length === 0) {
+            return res.status(404).json({ message: "No todos found for this site" });
+        }
+
+        const updateFields = {};
+        updateFields[`additionalCols.${newColumnName}`] = `$additionalCols.${oldColumnName}`;
+
+        await Todos.updateMany(
+            { siteId },
+            { $set: updateFields, $unset: { [`additionalCols.${oldColumnName}`]: 1 } }
+        );
+
+        res.status(200).json({ message: `Column '${oldColumnName}' renamed to '${newColumnName}' successfully for site ${siteId}` });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
