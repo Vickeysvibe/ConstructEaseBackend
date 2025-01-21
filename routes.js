@@ -8,7 +8,7 @@ import PurchaseOrders from "./Routes/purchaseOrders.routes.js";
 import sites from "./Routes/sites.routes.js";
 import auth from "./Routes/auth.routes.js";
 import materials from "./Routes/materials.routes.js";
-// import testing from "./testing/testing.routes.js";
+import testing from "./testing/testing.routes.js";
 
 export const routing = (app) => {
   app.use("/api/auth", auth);
@@ -20,5 +20,5 @@ export const routing = (app) => {
   app.use("/api/purchase", PurchaseOrders);
   app.use("/api/materials", materials);
   app.use("/api/sites", sites);
-  // app.use("/api/testing", testing);
+  app.use("/api/testing", testing);
 };
