@@ -7,7 +7,10 @@ const SupervisorAttendanceSchema = new mongoose.Schema(
       ref: "Sites",
       required: true,
     },
-    date: { type: Date, default: Date.now, required: true },
+    date: { 
+      type: Date, 
+      required: true 
+    },
     attendance: [
       {
         supervisorId: {
@@ -15,9 +18,28 @@ const SupervisorAttendanceSchema = new mongoose.Schema(
           ref: "Supervisors",
           required: true,
         },
-        location: { type: String, required: true },
-        checkin: { type: [Date], default: [] },
-        checkout: { type: [Date], default: [] },
+        location: { 
+          address: {
+            type: String, 
+            default: "Location not available",
+          },
+          latitude: { 
+            type: Number, 
+            required: true, 
+          },
+          longitude: { 
+            type: Number, 
+            required: true, 
+          },
+        },
+        checkin: { 
+          type: [Date], 
+          default: [] 
+        },
+        checkout: { 
+          type: [Date], 
+          default: [] 
+        },
       },
     ],
   },
