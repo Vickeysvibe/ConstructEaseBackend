@@ -26,7 +26,7 @@ export const createSupervisor = async (req, res) => {
     });
     await newSupervisor.save();
 
-    if (siteId) {
+    if (siteId && role === "local") {
       const site = await Sites.findById(siteId);
       if (!site) {
         return res.status(404).json({ message: "Site not found" });
@@ -36,16 +36,15 @@ export const createSupervisor = async (req, res) => {
       await site.save();
     }
 
-    res
-      .status(201)
-      .json({
-        message: "Supervisor created successfully",
-        supervisor: newSupervisor,
-      });
+    res.status(201).json({
+      message: "Supervisor created successfully",
+      supervisor: newSupervisor,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 export const updateSupervisor = async (req, res) => {
   try {
