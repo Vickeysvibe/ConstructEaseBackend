@@ -41,6 +41,7 @@ export const attendance = async (req, res) => {
       });
   
       await attendanceDoc.save();
+      console.log("document stored");
   
       const populatedDoc = await LabourAttendanceModel.findOne({
         siteId,
