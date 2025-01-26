@@ -8,7 +8,7 @@ import {
   editColumn,
   addColumn,
   deleteColumn
-} from "../Controllers/todo.contoller.js";
+} from "../Controllers/todo.controller.js";
 
 const router = express.Router();
 

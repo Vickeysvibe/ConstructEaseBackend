@@ -1,26 +1,31 @@
 import express from "express";
 import {
-    createClient,
-    updateClient,
-    getAllClients,
-    getClientById,
-    upload,
-    deleteClient,
-} from "../Controllers/client.controller.js"; 
+  createClient,
+  updateClient,
+  getAllClients,
+  getClientById,
+  upload,
+  deleteClient,
+} from "../Controllers/client.controller.js";
+import { verifyToken } from "../Middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/create", createClient);
+// Create a new client
+router.post("/create", verifyToken, createClient);
 
-router.put("/update/:clientId", updateClient);
+// Update an existing client by ID
+router.put("/update/:clientId", verifyToken, updateClient);
 
-router.get("/getAll", getAllClients);
+// Get all clients filtered by siteId
+router.get("/getAll", verifyToken, getAllClients);
 
-router.get("/get/:clientId", getClientById);
+// Get a specific client by ID
+router.get("/get/:clientId", verifyToken, getClientById);
 
-router.post("/upload", upload);
+// Upload clients via Excel file (siteId required in query)
+router.post("/upload", verifyToken, upload);
 
 router.delete("/deleteclient/:clientId", deleteClient);
-
 
 export default router;

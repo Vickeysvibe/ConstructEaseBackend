@@ -31,6 +31,7 @@ export const updateVendor = async (req, res) => {
         const updatedData = req.body;
         const { siteId } = req.query;
         updatedData.siteId = siteId;
+        console.log(updatedData.siteId);
         const updatedVendor = await Vendors.findByIdAndUpdate(vendorId, updatedData, { new: true });
         if (!updatedVendor) {
             return res.status(404).json({ error: "Vendor not found" });
@@ -110,7 +111,7 @@ export const uploadExcel = async (req, res) => {
 export const deleteVendor = async (req, res) => {
     try {
         const { vendorId } = req.params;
-        const siteId = req.query;
+        const {siteId} = req.query;
         const existingPurchaseOrder = await PurchaseOrders.findOne({
             vendorId: vendorId,
             siteId: siteId
