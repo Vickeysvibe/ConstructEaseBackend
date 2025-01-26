@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
-import LabourAttendanceModel from "../Models/LabourAttendance.model";
-import LabourModel from "../Models/Labours.model";
-import SupervisorAttendancesModel from "../Models/SupervisorAttendances.model";
+import LabourAttendanceModel from "../Models/LabourAttendance.model.js";
+import LabourModel from "../Models/Labors.model.js";
+import SupervisorAttendancesModel from "../Models/SupervisorAttendances.model.js";
+import SupervisorsModel from "../Models/Supervisors.model.js";
 
 export const attendance = async (req, res) => {
     try {
@@ -89,7 +90,7 @@ export const getLabours = async (req, res) => {
       }));
   
       const subCategoryCounts = await LabourModel.aggregate([
-        { $match: { siteId: mongoose.Types.ObjectId(siteId) } },
+        { $match: { siteId:new mongoose.Types.ObjectId(siteId) } },
         {
           $group: {
             _id: { category: "$category", subCategory: "$subCategory" },
@@ -174,21 +175,30 @@ export const getSupervisors = async (req, res) => {
     if (!siteId) {
       return res.status(400).json({ message: "Site ID is required." });
     }
-
     const supervisorsAttendance = await SupervisorAttendancesModel.find({ siteId })
-      .populate("supervisorId", "name") 
-      .select("location checkin checkout supervisorId ");
+      .populate("attendance.supervisorId", "name") 
+      .select("attendance.location attendance.checkin attendance.checkout"); 
 
-    const formattedAttendance = supervisorsAttendance.map((attendance) => ({
-      name: attendance.supervisorId.name, 
-      location: attendance.location, 
-      checkinTime: attendance.checkin, 
-      checkoutTime: attendance.checkout, 
-    }));
+    const formattedAttendance = supervisorsAttendance.flatMap((record) => {
+      return record.attendance.flatMap((entry) => {
+        if (entry.checkin && entry.checkout) {
+          return entry.checkin.map((checkinTime, index) => {
+            const checkoutTime = entry.checkout[index] || null;
+            return {
+              name: entry.supervisorId?.name || "Unknown", 
+              location: entry.location?.address || "No location provided",
+              loginTime: checkinTime, 
+              logoutTime: checkoutTime, 
+            };
+          });
+        }
+        return []; 
+      });
+    });
+
     res.status(200).json(formattedAttendance);
   } catch (error) {
     console.error("Error fetching supervisors:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-

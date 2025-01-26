@@ -135,7 +135,7 @@ export const uploadExcel = async (req, res) => {
 export const deleteProduct = async (req, res) => {
     try {
         const { productId } = req.params;
-        const siteId = req.query;
+        const {siteId} = req.query;
         const existingPurchaseOrder = await PurchaseOrders.findOne({
             siteId: siteId,
             "order.productId": productId
