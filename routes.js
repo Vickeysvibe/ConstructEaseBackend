@@ -7,6 +7,7 @@ import todoRoutes from "./Routes/todo.routes.js";
 import PurchaseOrders from "./Routes/purchaseOrders.routes.js";
 import sites from "./Routes/sites.routes.js";
 import auth from "./Routes/auth.routes.js";
+import  materialReport from './Routes/materialReport.routes.js'
 // import testing from "./testing/testing.routes.js";
 
 export const routing = (app) => {
@@ -18,6 +19,7 @@ export const routing = (app) => {
   app.use("/api/supervisors", supervisorRoutes);
   app.use("/api/pos", PurchaseOrders);
   app.use("/api/sites", sites);
+  app.use("/api/material",materialReport)
 //   app.use("/api/testing", testing);
   app.use("/todo",todoRoutes);
 

@@ -9,7 +9,8 @@ export const createVendor = async (req, res) => {
         if (!name || !ownerName || !address || !gstIn || !phoneNo || !siteId) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        const existingVendor =  Vendors.findOne({ name, siteId })
+        const existingVendor = await Vendors.findOne({ name, siteId })
+        console.log(existingVendor)
         if(existingVendor)
         {
             return res.status(400).json({
