@@ -11,12 +11,11 @@ import { verifyToken } from "../Middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/create-product", verifyToken, createProduct);
-router.put("/update-product/:productId", verifyToken, updateProduct);
-router.get("/getAll-product", verifyToken, getAllProducts);
+router.post("/create", verifyToken, createProduct); //tested
+router.put("/update/:productId", verifyToken, updateProduct); //tested
+router.get("/getAll", verifyToken, getAllProducts);
 router.get("/getById/:productId", verifyToken, getProductById);
-router.post("/upload-product", verifyToken, uploadExcel);
-router.delete("/deleteproduct/:productId",verifyToken, deleteProduct); 
-
+router.post("/upload", verifyToken, uploadExcel);
+router.delete("/deleteproduct/:productId", verifyToken, deleteProduct);
 
 export default router;

@@ -1,6 +1,7 @@
 import Supervisors from "../Models/Supervisors.model.js";
 import Sites from "../Models/Sites.model.js";
 import XLSX from "xlsx";
+import SitesModel from "../Models/Sites.model.js";
 
 export const createSupervisor = async (req, res) => {
   try {
@@ -10,9 +11,15 @@ export const createSupervisor = async (req, res) => {
 
     const supervisorExists = await Supervisors.findOne({ email });
     if (supervisorExists) {
-      return res
-        .status(400)
-        .json({ message: "Supervisor with this email already exists" });
+      if (supervisorExists.role === "global")
+        return res.status(208).json({
+          message:
+            "the supervisor is alredy a global supervisor so no need to add",
+        });
+      const site = await Sites.findById(siteId);
+      site.supervisorsId.push(supervisorExists._id);
+      await site.save();
+      return res.status(201).json({ message: "Supervisor added" });
     }
 
     const newSupervisor = new Supervisors({
@@ -36,12 +43,10 @@ export const createSupervisor = async (req, res) => {
       await site.save();
     }
 
-    res
-      .status(201)
-      .json({
-        message: "Supervisor created successfully",
-        supervisor: newSupervisor,
-      });
+    res.status(201).json({
+      message: "Supervisor created successfully",
+      supervisor: newSupervisor,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -74,45 +79,43 @@ export const updateSupervisor = async (req, res) => {
       }
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Supervisor updated successfully",
-        supervisor: updatedSupervisor,
-      });
+    res.status(200).json({
+      message: "Supervisor updated successfully",
+      supervisor: updatedSupervisor,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 export const getSupervisorsBySite = async (req, res) => {
-    try {
-        const { siteId } = req.query;
+  try {
+    const { siteId } = req.query;
 
-        if (!siteId) {
-            return res.status(400).json({ message: "Site ID is required" });
-        }
-
-        const site = await Sites.findById(siteId).populate({
-            path: "supervisorsId",
-            match: { isDel: false }  
-        });
-
-        if (!site) {
-            return res.status(404).json({ message: "Site not found" });
-        }
-
-        if (!site.supervisorsId || site.supervisorsId.length === 0) {
-            return res.status(404).json({ message: "No active supervisors assigned to this site" });
-        }
-
-        res.status(200).json(site.supervisorsId);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!siteId) {
+      return res.status(400).json({ message: "Site ID is required" });
     }
 
-};
+    const site = await Sites.findById(siteId).populate({
+      path: "supervisorsId",
+      match: { isDel: false },
+    });
 
+    if (!site) {
+      return res.status(404).json({ message: "Site not found" });
+    }
+
+    if (!site.supervisorsId || site.supervisorsId.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No active supervisors assigned to this site" });
+    }
+
+    res.status(200).json(site.supervisorsId);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 export const getSupervisorById = async (req, res) => {
   try {
@@ -133,84 +136,96 @@ export const getSupervisorById = async (req, res) => {
 };
 
 export const uploadExcel = async (req, res) => {
-    try {
-        const { engineerId } = req.query;
-        const { siteId } = req.query;
+  try {
+    const { engineerId } = req.query;
+    const { siteId } = req.query;
 
-        if (!req.files || !req.files.file) {
-            return res.status(400).json({ message: "No file uploaded" });
-        }
-
-        const file = req.files.file;
-        const workbook = XLSX.read(file.data, { type: "buffer" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-        const supervisors = [];
-        jsonData.forEach((row) => {
-            const { name, email, address, phoneNo, password, role } = row;
-            if (name && email && address && phoneNo && password && role) {
-                supervisors.push({ name, email, address, phoneNo, password, role, engineerId });
-            }
-        });
-
-        if (supervisors.length === 0) {
-            return res.status(400).json({ error: "No valid data found in the file" });
-        }
-
-
-        const savedSupervisors = await Supervisors.insertMany(supervisors);
-
-
-        if (siteId) {
-            const site = await Sites.findById(siteId);
-            if (!site) {
-                return res.status(404).json({ message: "Site not found" });
-            }
-
-
-            savedSupervisors.forEach((supervisor) => {
-                if (!site.supervisorsId.includes(supervisor._id)) {
-                    site.supervisorsId.push(supervisor._id);
-                }
-            });
-
-            await site.save();
-        }
-
-        res.status(200).json({ message: "Supervisors uploaded successfully", supervisors: savedSupervisors });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!req.files || !req.files.file) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
+
+    const file = req.files.file;
+    const workbook = XLSX.read(file.data, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+    const supervisors = [];
+    jsonData.forEach((row) => {
+      const { name, email, address, phoneNo, password, role } = row;
+      if (name && email && address && phoneNo && password && role) {
+        supervisors.push({
+          name,
+          email,
+          address,
+          phoneNo,
+          password,
+          role,
+          engineerId,
+        });
+      }
+    });
+
+    if (supervisors.length === 0) {
+      return res.status(400).json({ error: "No valid data found in the file" });
+    }
+
+    const savedSupervisors = await Supervisors.insertMany(supervisors);
+
+    if (siteId) {
+      const site = await Sites.findById(siteId);
+      if (!site) {
+        return res.status(404).json({ message: "Site not found" });
+      }
+
+      savedSupervisors.forEach((supervisor) => {
+        if (!site.supervisorsId.includes(supervisor._id)) {
+          site.supervisorsId.push(supervisor._id);
+        }
+      });
+
+      await site.save();
+    }
+
+    res.status(200).json({
+      message: "Supervisors uploaded successfully",
+      supervisors: savedSupervisors,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 export const deleteSupervisor = async (req, res) => {
-    try {
-        const { supervisorId } = req.params;
-        const { siteId } = req.query;
+  try {
+    const { supervisorId } = req.params;
+    const { siteId } = req.query;
 
-        const updatedSupervisor = await Supervisors.findByIdAndUpdate(
-            supervisorId,
-            { isDel: true },
-            { new: true } 
-        );
+    const updatedSupervisor = await Supervisors.findByIdAndUpdate(
+      supervisorId,
+      { isDel: true },
+      { new: true }
+    );
 
-        if (!updatedSupervisor) {
-            return res.status(404).json({ message: "Supervisor not found" });
-        }
-
-        if (siteId) {
-            const site = await Sites.findById(siteId);
-            if (!site) {
-                return res.status(404).json({ message: "Site not found" });
-            }
-
-            site.supervisorsId = site.supervisorsId.filter(id => id.toString() !== supervisorId);
-            await site.save();
-        }
-
-        res.status(200).json({ message: "Supervisor marked as deleted successfully", supervisor: updatedSupervisor });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!updatedSupervisor) {
+      return res.status(404).json({ message: "Supervisor not found" });
     }
-};
 
+    if (siteId) {
+      const site = await Sites.findById(siteId);
+      if (!site) {
+        return res.status(404).json({ message: "Site not found" });
+      }
+
+      site.supervisorsId = site.supervisorsId.filter(
+        (id) => id.toString() !== supervisorId
+      );
+      await site.save();
+    }
+
+    res.status(200).json({
+      message: "Supervisor marked as deleted successfully",
+      supervisor: updatedSupervisor,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

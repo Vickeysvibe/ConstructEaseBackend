@@ -11,21 +11,16 @@ import { verifyToken } from "../Middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Create a new client
-router.post("/create", verifyToken, createClient);
+router.post("/create", verifyToken, createClient); //tested
 
-// Update an existing client by ID
-router.put("/update/:clientId", verifyToken, updateClient);
+router.put("/update/:clientId", verifyToken, updateClient); //tested
 
-// Get all clients filtered by siteId
-router.get("/getAll", verifyToken, getAllClients);
+router.get("/getAll", verifyToken, getAllClients); //tested
 
-// Get a specific client by ID
-router.get("/get/:clientId", verifyToken, getClientById);
+router.get("/get/:clientId", verifyToken, getClientById); //not needed
 
-// Upload clients via Excel file (siteId required in query)
-router.post("/upload", verifyToken, upload);
+router.post("/upload", verifyToken, upload); //yet to be tested
 
-router.delete("/deleteclient/:clientId", deleteClient);
+router.delete("/deleteclient/:clientId", deleteClient); //tested
 
 export default router;

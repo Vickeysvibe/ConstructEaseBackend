@@ -4,7 +4,9 @@ import PurchaseOrdersModel from "../Models/PurchaseOrders.model.js";
 import PurchaseReturnsModel from "../Models/PurchaseReturns.model.js";
 import SitesModel from "../Models/Sites.model.js";
 import VendorsModel from "../Models/Vendors.model.js";
-
+import fs from "fs";
+import puppeteer from "puppeteer";
+import Handlebars from "handlebars";
 // get all purchase orders for the site
 export const getAllPos = async (req, res) => {
   try {
@@ -13,8 +15,7 @@ export const getAllPos = async (req, res) => {
       "vendorId",
       "name"
     );
-    if (pos.length === 0)
-      return res.status(404).json({ message: "No purchase orders found" });
+
     res.status(200).json(pos);
   } catch (error) {
     console.log(error);

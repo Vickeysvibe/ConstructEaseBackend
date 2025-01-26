@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
@@ -19,9 +20,14 @@
     "express-fileupload": "^1.5.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "node-geocoder": "^4.4.1",
     "morgan": "^1.10.0",
+    "node-geocoder": "^4.4.1",
     "nodemon": "^3.1.9",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.4.0",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }
