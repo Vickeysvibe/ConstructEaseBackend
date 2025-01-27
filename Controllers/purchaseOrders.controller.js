@@ -5,8 +5,8 @@ import PurchaseReturnsModel from "../Models/PurchaseReturns.model.js";
 import SitesModel from "../Models/Sites.model.js";
 import VendorsModel from "../Models/Vendors.model.js";
 import fs from "fs";
-// import puppeteer from "puppeteer";
-// import Handlebars from "handlebars";
+import puppeteer from "puppeteer";
+import Handlebars from "handlebars";
 // get all purchase orders for the site
 export const getAllPos = async (req, res) => {
   try {
@@ -128,7 +128,7 @@ export const helper = async (req, res) => {
 export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, date, transport, order } = req.body;
+    const { vendorId, date, transport, order, template } = req.body;
     if (order.length === 0 || !vendorId || !date || !transport)
       return res.status(400).json({ message: "fill all the fields" });
     const po = await PurchaseOrdersModel.create({
@@ -141,9 +141,19 @@ export const CreatePo = async (req, res) => {
     await po.save();
 
     const PurOrder = await PurchaseOrdersModel.findById(po._id)
-      .populate("vendorId siteId")
-      .populate("order.productId")
-      .populate("siteId.engineerId");
+      .populate("vendorId") // Populate vendor details
+      .populate({
+        path: "siteId", // Populate site details
+        populate: [
+          { path: "engineerId", model: "Engineers" }, // Populate engineer within site
+        ],
+      })
+      .populate({
+        path: "order.productId", // Populate products in the order
+        populate: { path: "siteId", model: "Sites" }, // Nested population: Product -> Site
+      })
+      .lean();
+    PurOrder.date = new Date(PurOrder.date).toLocaleDateString("en-US");
 
     // Generate HTML from Template
     const generateHTML = (templatePath, data) => {
@@ -163,7 +173,10 @@ export const CreatePo = async (req, res) => {
     };
 
     // Main Execution
-    const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
+    const html = generateHTML(
+      `./PoTemplates/template${template}.html`,
+      PurOrder
+    );
     const pdfBuffer = await generatePDFBuffer(html);
     // Set response headers
     res.setHeader("Content-Type", "application/pdf");
@@ -173,7 +186,7 @@ export const CreatePo = async (req, res) => {
     );
 
     // Send PDF Buffer as response
-    res.send(pdfBuffer);
+    res.end(pdfBuffer);
   } catch (error) {
     console.log(error);
     res
@@ -198,12 +211,12 @@ export const CreatePr = async (req, res) => {
       order,
     });
     await pr.save();
-    res.status(200).json(pr);
 
-    // const PurOrder = await PurchaseOrdersModel.findById(pr._id)
-    //   .populate("vendorId siteId")
-    //   .populate("order.productId")
-    //   .populate("siteId.engineerId");
+    const PurOrder = await PurchaseOrdersModel.findById(pr._id)
+      .populate("vendorId siteId")
+      .populate("order.productId")
+      .populate("siteId.engineerId");
+    console.log(PurOrder);
 
     // // Generate HTML from Template
     // const generateHTML = (templatePath, data) => {
@@ -234,6 +247,7 @@ export const CreatePr = async (req, res) => {
 
     // // Send PDF Buffer as response
     // res.send(pdfBuffer);
+    res.status(200).json(pr);
   } catch (error) {
     console.log(error);
     res

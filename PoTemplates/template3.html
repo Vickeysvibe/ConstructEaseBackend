@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -343,59 +343,42 @@
       <!-- Header -->
       <div class="header">
         <div class="logo-container">
-          <img src="horse-logo.png" alt="Company Logo" class="logo" />
+          <img
+            src="{{siteId.engineerId.companyLogo}}"
+            alt="Company Logo"
+            class="logo"
+          />
           <div class="company-info">
-            <h1>STATIONERY</h1>
-            <p>Company Slogan Here</p>
+            <h1>{{siteId.engineerId.companyName}}</h1>
           </div>
         </div>
         <div class="date-info">
           <img src="templatelab-logo.png" alt="TemplateLAB Logo" />
-          <p>December 18, 2021</p>
+          <p>{{date}}</p>
           <p>Purchase Order Date</p>
         </div>
       </div>
 
       <!-- Order Title -->
       <div class="order-title">
-        <h2>PURCHASE ORDER #1258820</h2>
+        <h2>PURCHASE ORDER #{{_id}}</h2>
       </div>
 
       <!-- Address Section -->
       <div class="address-section">
         <div class="address-block">
-          <h3>BILL TO</h3>
-          <p>ATTN: Name / Department</p>
-          <p>Company Name</p>
-          <p>252 Stationery Street</p>
-          <p>Manchester, IL 22565</p>
-          <p>(444) 456-9900</p>
-          <p>Email Address</p>
+          <h3>Vendor</h3>
+          <p><strong>Name:</strong> {{vendorId.name}}</p>
+          <p><strong>Address:</strong> {{vendorId.address}}</p>
+          <p><strong>GSTIN:</strong> {{vendorId.gstIn}}</p>
+          <p><strong>Phone:</strong> {{vendorId.phoneNo}}</p>
+          <p><strong>Owner:</strong> {{vendorId.ownerName}}</p>
         </div>
         <div class="address-block">
           <h3>SHIP TO</h3>
-          <p>ATTN: Name / Department</p>
-          <p>Company Name</p>
-          <p>252 Stationery Street</p>
-          <p>Manchester, IL 22565</p>
-          <p>(444) 456-9900</p>
-          <p>Email Address</p>
-        </div>
-      </div>
-
-      <!-- Shipping Info -->
-      <div class="shipping-info">
-        <div class="shipping-header">
-          <div>SHIPPING METHOD AND SHIPPING TERMS</div>
-          <div>SHIP VIA</div>
-          <div>PAYMENT</div>
-          <div>DELIVERY DATE</div>
-        </div>
-        <div class="shipping-content">
-          <div>Express shipment / Paid by customer</div>
-          <div>DHL</div>
-          <div>NET 30</div>
-          <div>2021-12-31</div>
+          <p><strong>Site:</strong> {{siteId.siteName}}</p>
+          <p><strong>Address:</strong> {{siteId.siteAddress}}</p>
+          <p><strong>Transport:</strong> {{transport}}</p>
         </div>
       </div>
 
@@ -404,113 +387,42 @@
         <div class="items-header grid-row">
           <div>ITEM NO.</div>
           <div>DESCRIPTION</div>
+          <div>CATAGORY</div>
           <div>QTY</div>
           <div>UNIT PRICE</div>
-          <div>TOTAL</div>
         </div>
+        {{#each order}}
         <div class="items-row grid-row">
-          <div>AX100</div>
-          <div>Item from stock</div>
-          <div>10</div>
-          <div>$100.00</div>
-          <div>$1,000.00</div>
+          <div>{{@index}}</div>
+          <div>{{productId.name}}</div>
+          <div>{{productId.category}}</div>
+          <div>{{requiredQty}}</div>
+          <div>{{productId.unit}}</div>
         </div>
-        <div class="items-row grid-row">
-          <div>BX200</div>
-          <div>Service description</div>
-          <div>5</div>
-          <div>$25.00</div>
-          <div>$125.00</div>
-        </div>
-        <div class="items-row grid-row">
-          <div>CX300</div>
-          <div>Describe item#3</div>
-          <div>10</div>
-          <div>$5.00</div>
-          <div>$50.00</div>
-        </div>
-        <div class="items-row grid-row">
-          <div>DX400</div>
-          <div>Describe item#4</div>
-          <div>5</div>
-          <div>$10.00</div>
-          <div>$50.00</div>
-        </div>
-      </div>
-
-      <div class="remarks-and-totals">
-        <!-- Remarks Section -->
-        <div class="remarks">
-          <h3>Remarks / Instructions:</h3>
-          <textarea
-            class="remarks-box"
-            placeholder="Enter your remarks or special instructions here"
-          ></textarea>
-        </div>
-
-        <!-- Totals Section -->
-        <div class="totals-container">
-          <div class="total-row">
-            <span>SUBTOTAL</span>
-            <span>$1,225.00</span>
-          </div>
-          <div class="total-row">
-            <span>DISCOUNT</span>
-            <span>$50.00</span>
-          </div>
-          <div class="total-row">
-            <span>SUBTOTAL LESS DISCOUNT</span>
-            <span>$1,175.00</span>
-          </div>
-          <div class="total-row">
-            <span>TAX RATE</span>
-            <span>10.00%</span>
-          </div>
-          <div class="total-row">
-            <span>TOTAL TAX</span>
-            <span>$117.50</span>
-          </div>
-          <div class="total-row">
-            <span>SHIPPING/HANDLING</span>
-            <span>$50.00</span>
-          </div>
-          <div class="total-row">
-            <span>OTHER</span>
-            <span>$50.00</span>
-          </div>
-          <div class="total-row final">
-            <span>TOTAL</span>
-            <span>$1,392.50</span>
-          </div>
-        </div>
+        {{/each}}
       </div>
 
       <!-- Thank You -->
       <div class="thank-you">THANK YOU</div>
 
-      <!-- Bottom Section -->
-      <div class="bottom-section">
-        <div class="signature-section">
-          <div class="signature-header">AUTHORIZED SIGNATURE</div>
-          <img src="signature.png" alt="Signature" class="signature-image" />
-        </div>
-      </div>
-
       <!-- Footer -->
       <div class="footer">
         <div class="footer-content">
           <div class="footer-left">
-            <img src="horse-logo.png" alt="Company Logo" class="footer-logo" />
+            <img
+              src="{{siteId.engineerId.companyLogo}}"
+              alt="Company Logo"
+              class="footer-logo"
+            />
             <div class="footer-info">
-              <p>STATIONERY (COMPANY NAME)</p>
-              <p>123 Main Street</p>
-              <p>Georgetown, OH 24410</p>
+              <p>{{siteId.engineerId.companyName}}</p>
+              <p>{{siteId.engineerId.address}}</p>
             </div>
           </div>
           <div class="footer-contact">
             <p>For questions concerning this Purchase Order, please contact</p>
-            <p>John Doe, (555) 112-7890, john.doe@stationery.com</p>
-            <p>www.stationerywebaddress.com</p>
+            <p>{{siteId.engineerId.email}}</p>
+            <p>{{siteId.engineerId.phoneNo}}</p>
           </div>
         </div>
       </div>
