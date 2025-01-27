@@ -10,7 +10,7 @@ import auth from "./Routes/auth.routes.js";
 import materials from "./Routes/materials.routes.js";
 import testing from "./testing/testing.routes.js";
 import attendanceRoutes from "./Routes/attendance.routes.js";
-
+import reportroutes from "./Routes/report.routes.js";
 export const routing = (app) => {
   app.use("/api/auth", auth);
   app.use("/api/client", clientRoutes);
@@ -24,4 +24,6 @@ export const routing = (app) => {
   app.use("/api/sites", sites);
   app.use("/api/testing", testing);
   app.use("/todo", todoRoutes);
+  app.use("/api/report",reportroutes);
+  
 };

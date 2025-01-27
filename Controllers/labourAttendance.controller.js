@@ -5,75 +5,95 @@ import SupervisorAttendancesModel from "../Models/SupervisorAttendances.model.js
 import SupervisorsModel from "../Models/Supervisors.model.js";
 
 export const attendance = async (req, res) => {
-    try {
-      const { labourIds } = req.body; 
-      const { siteId } = req.query;  
-  
-      if (!labourIds || labourIds.length === 0) {
-        return res.status(400).json({ message: "No labour IDs provided" });
-      }
-  
-      if (!siteId) {
-        return res.status(400).json({ message: "siteId is required" });
-      }
-  
-      const currentDate = new Date().setHours(0, 0, 0, 0);
-  
-      let attendanceDoc = await LabourAttendanceModel.findOne({
-        siteId,
-        date: currentDate,
-      });
-  
-      if (!attendanceDoc) {
-        attendanceDoc = new LabourAttendanceModel({
-          siteId,
-          date: currentDate,
-          attendance: [],
-        });
-      }
-  
-      labourIds.forEach((labourId) => {
-        attendanceDoc.attendance.push({
-          labourId,
-          status: "present", 
-          shift: 1, 
-        });
-      });
-  
-      await attendanceDoc.save();
-      console.log("document stored");
-  
-      const populatedDoc = await LabourAttendanceModel.findOne({
-        siteId,
-        date: currentDate,
-      })
-        .populate("attendance.labourId", "name category wagesPerShift")
-        .select("attendance");
-  
-      const attendanceResponse = populatedDoc.attendance.map((entry) => {
-        const labour = entry.labourId;
-        const shift = entry.shift || 1;
-        const wagesPerShift = labour.wagesPerShift || 0;
-        const total = shift * wagesPerShift;
-  
-        return {
-          Name: labour.name,
-          Category: labour.category,
-          Shift: shift,
-          WagesPerShift: wagesPerShift,
-          Total: total,
-        };
-      });
-  
-      res.status(200).json({
-        Attendance: attendanceResponse,
-      });
-    } catch (error) {
-      console.error("Error in attendance:", error);
-      res.status(500).json({ message: "Internal server error", error });
+  try {
+    const { labourIds } = req.body; 
+    const { siteId } = req.query;  
+
+    if (!labourIds || labourIds.length === 0) {
+      return res.status(400).json({ message: "No labor IDs provided" });
     }
-  };
-  
+
+    if (!siteId) {
+      return res.status(400).json({ message: "Site ID is required" });
+    }
+
+    const validLabors = await LabourModel.find({
+      _id: { $in: labourIds },
+      siteId,
+    }).select("_id");
+
+    if (validLabors.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No matching labor IDs for the provided site" });
+    }
+
+    const validLaborIds = validLabors.map((labor) => labor._id.toString());
+    const currentDate = new Date().setHours(0, 0, 0, 0);
+
+    let attendanceDoc = await LabourAttendanceModel.findOne({
+      siteId,
+      date: currentDate,
+    });
+
+    if (!attendanceDoc) {
+      attendanceDoc = new LabourAttendanceModel({
+        siteId,
+        date: currentDate,
+        attendance: [],
+      });
+    }
+
+    const existingLaborIds = attendanceDoc.attendance.map(
+      (entry) => entry.labourId.toString()
+    );
+
+    const newLaborIds = validLaborIds.filter(
+      (id) => !existingLaborIds.includes(id)
+    );
+
+    newLaborIds.forEach((labourId) => {
+      attendanceDoc.attendance.push({
+        labourId,
+        status: "present",
+        shift: 1,
+      });
+    });
+
+    await attendanceDoc.save();
+    console.log("Attendance document stored");
+
+    const populatedDoc = await LabourAttendanceModel.findOne({
+      siteId,
+      date: currentDate,
+    })
+      .populate("attendance.labourId", "name category wagesPerShift")
+      .select("attendance");
+
+    const attendanceResponse = populatedDoc.attendance.map((entry) => {
+      const labour = entry.labourId;
+      const shift = entry.shift || 1;
+      const wagesPerShift = labour.wagesPerShift || 0;
+      const total = shift * wagesPerShift;
+
+      return {
+        Name: labour.name,
+        Category: labour.category,
+        Shift: shift,
+        WagesPerShift: wagesPerShift,
+        Total: total,
+      };
+    });
+
+    res.status(200).json({
+      Attendance: attendanceResponse,
+    });
+  } catch (error) {
+    console.error("Error in attendance:", error);
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
 
 export const getLabours = async (req, res) => {
     try {

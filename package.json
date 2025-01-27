@@ -15,12 +15,13 @@
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "express-fileupload": "^1.5.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "node-geocoder": "^4.4.1",
     "morgan": "^1.10.0",
+    "node-geocoder": "^4.4.1",
     "nodemon": "^3.1.9",
     "xlsx": "^0.18.5"
   }
