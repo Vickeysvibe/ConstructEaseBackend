@@ -6,7 +6,7 @@ import generateJwt from "../Utils/generateJWTtoken.js";
 import geocoder from "../Utils/geocoder.js";
 
 const formatDate = (date) => {
-  return date.toISOString().split("T")[0]; 
+  return date.toISOString().split("T")[0];
 };
 
 export const login = async (req, res) => {
@@ -20,11 +20,11 @@ export const login = async (req, res) => {
         .json({ message: "Not all fields have been entered." });
     }
 
-    if (!location || !location.latitude || !location.longitude) {
+    /* if (!location || !location.latitude || !location.longitude) {
       return res
         .status(400)
         .json({ message: "Real-time location is required." });
-    }
+    } */
 
     let user = {};
 
@@ -44,7 +44,7 @@ export const login = async (req, res) => {
 
     const role = user.companyName ? "Engineer" : "Supervisor";
     const token = await generateJwt(user, role);
-
+    /* 
     const [geocodedLocation] = await geocoder.reverse({
       lat: location.latitude,
       lon: location.longitude,
@@ -109,7 +109,7 @@ export const login = async (req, res) => {
       }
 
       await attendanceRecord.save();
-    }
+    } */
 
     return res.status(200).json({ token, user });
   } catch (error) {
@@ -138,9 +138,9 @@ export const checkout = async (req, res) => {
     });
 
     if (!attendanceRecord) {
-      return res
-        .status(404)
-        .json({ message: "No attendance record found for this site and date." });
+      return res.status(404).json({
+        message: "No attendance record found for this site and date.",
+      });
     }
 
     // Find the supervisor's attendance entry
@@ -156,9 +156,8 @@ export const checkout = async (req, res) => {
 
     // Update the last default checkout time with the actual checkout time
     if (supervisorAttendance.checkout.length > 0) {
-      supervisorAttendance.checkout[
-        supervisorAttendance.checkout.length - 1
-      ] = now;
+      supervisorAttendance.checkout[supervisorAttendance.checkout.length - 1] =
+        now;
     } else {
       return res
         .status(400)
@@ -166,7 +165,9 @@ export const checkout = async (req, res) => {
     }
 
     await attendanceRecord.save();
-    return res.status(200).json({ message: "Checkout time updated successfully." });
+    return res
+      .status(200)
+      .json({ message: "Checkout time updated successfully." });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

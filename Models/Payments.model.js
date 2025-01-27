@@ -9,7 +9,7 @@ const PaymentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["vendor", "client", "labor", "others"],
+      enum: ["vendor", "client", "labour", "others"],
       required: true,
     },
     date: { type: Date, default: Date.now, required: true },

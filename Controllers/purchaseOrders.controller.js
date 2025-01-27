@@ -4,7 +4,9 @@ import PurchaseOrdersModel from "../Models/PurchaseOrders.model.js";
 import PurchaseReturnsModel from "../Models/PurchaseReturns.model.js";
 import SitesModel from "../Models/Sites.model.js";
 import VendorsModel from "../Models/Vendors.model.js";
-
+import fs from "fs";
+import puppeteer from "puppeteer";
+import Handlebars from "handlebars";
 // get all purchase orders for the site
 export const getAllPos = async (req, res) => {
   try {
@@ -13,8 +15,7 @@ export const getAllPos = async (req, res) => {
       "vendorId",
       "name"
     );
-    if (pos.length === 0)
-      return res.status(404).json({ message: "No purchase orders found" });
+
     res.status(200).json(pos);
   } catch (error) {
     console.log(error);
@@ -128,8 +129,10 @@ export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
     const { vendorId, date, transport, order } = req.body;
-    if (order.length === 0 || !vendorId || !date || !transport)
-      return res.status(400).json({ message: "fill all the fields" });
+    if (order.length === 0 || !vendorId || !date || !transport) {
+      return res.status(400).json({ message: "Fill all the fields" });
+    }
+
     const po = await PurchaseOrdersModel.create({
       siteId,
       vendorId,
@@ -153,33 +156,36 @@ export const CreatePo = async (req, res) => {
 
     // Generate PDF and Return as Buffer
     const generatePDFBuffer = async (html) => {
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
-      const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-      await browser.close();
-      return pdfBuffer;
+      try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: "load" });
+        const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+        await browser.close();
+        return pdfBuffer;
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        throw new Error("PDF generation failed");
+      }
     };
 
     // Main Execution
-    const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
+    const html = generateHTML("./PoTemplates/template1.html", { PurOrder });
     const pdfBuffer = await generatePDFBuffer(html);
-    // Set response headers
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=purchase_order.pdf"
-    );
 
-    // Send PDF Buffer as response
-    res.send(pdfBuffer);
+    // Set response headers to send PDF
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=purchase_order.pdf");
+
+    // Send the buffer directly as response
+    res.end(pdfBuffer); // Use `res.end()` to send raw binary data
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+    res.status(500).json({ message: "Something went wrong", error: error.message });
   }
 };
+
+
 
 //create purchase order
 export const CreatePr = async (req, res) => {

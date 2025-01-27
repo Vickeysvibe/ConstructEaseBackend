@@ -1,4 +1,4 @@
-import MaterialInward from '../models/materialInward.model.js';
+import MaterialInward from '../models/MaterialInwads.model.js';
 import XLSX from 'xlsx';
 
 export const overallMaterialReport = async (req, res) => {

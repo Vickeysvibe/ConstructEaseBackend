@@ -7,7 +7,7 @@ import {
   updateTodo,
   editColumn,
   addColumn,
-  deleteColumn
+  deleteColumn,
 } from "../Controllers/todo.controller.js";
 
 const router = express.Router();
@@ -16,13 +16,13 @@ router.post("/create-todo", createTodo);
 
 router.get("/getall", getAllTodos);
 
-router.put("/updatetodo",updateTodo);
+router.put("/updatetodo", updateTodo);
 
-router.put("/updatecolumn",editColumn);
+router.put("/updatecolumn", editColumn);
 
 router.post("/addcolumn", addColumn);
 
-router.delete("/deltecolumn",deleteColumn);
+router.delete("/deltecolumn", deleteColumn);
 
 router.get("/getbyid/:todoId", getTodoById);
 

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Purchase Order</title>
+  </head>
+  <body>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Open Sans", Arial, sans-serif;
+      }
+
+      body {
+        background-color: #fff;
+        padding: 20px;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 30px;
+      }
+
+      /* Header Styles */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 25px;
+      }
+
+      .logo-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .logo {
+        width: 70px;
+        height: auto;
+      }
+
+      .company-info h1 {
+        color: #8b0000;
+        font-size: 26px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .company-info p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .date-info {
+        text-align: right;
+      }
+
+      .date-info img {
+        width: 120px;
+        height: auto;
+        margin-bottom: 5px;
+      }
+
+      .date-info p {
+        color: #333;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      /* Order Title */
+      .order-title {
+        background: #8b0000;
+        color: white;
+        text-align: center;
+        padding: 12px;
+        margin: 20px 0;
+        font-size: 20px;
+        letter-spacing: 1px;
+      }
+
+      .order-title h2 {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      /* Address Section */
+      .address-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 25px;
+      }
+
+      .address-block h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .address-block p {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #333;
+      }
+
+      /* Shipping Info */
+      .shipping-info {
+        margin-bottom: 25px;
+      }
+
+      .shipping-header,
+      .shipping-content {
+        display: grid;
+        grid-template-columns: 2.5fr 1fr 1fr 1fr;
+        text-align: center;
+      }
+
+      .shipping-header {
+        background: #8b0000;
+        color: white;
+        font-size: 14px;
+        padding: 8px 0;
+      }
+
+      .shipping-content {
+        border: 1px solid #ddd;
+        border-top: none;
+        font-size: 14px;
+        padding: 8px 0;
+      }
+
+      /* Items Table */
+      .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px; /* Changed from 25px */
+      }
+
+      .items-header {
+        background: #8b0000;
+        color: white;
+        font-size: 14px;
+      }
+
+      .items-header div {
+        padding: 8px;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      .items-row {
+        border: 1px solid #ddd;
+        font-size: 14px;
+      }
+
+      .items-table .grid-row {
+        display: grid;
+        grid-template-columns: 1fr 2fr 0.8fr 1fr 1fr;
+        text-align: center;
+        padding: 8px 0;
+      }
+
+      .remarks-and-totals {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin: 25px 0;
+        gap: 20px;
+      }
+
+      .totals-container {
+        flex: 0 0 auto;
+        width: 40%;
+        margin-left: auto;
+      }
+
+      /* Remarks Section */
+      .remarks {
+        flex: 1;
+        max-width: 60%;
+      }
+
+      .remarks h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .remarks-box {
+        width: 100%;
+        min-height: 100px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        font-family: "Open Sans", Arial, sans-serif;
+        font-size: 14px;
+        resize: vertical;
+        margin-bottom: 10px;
+      }
+
+      .remarks input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        font-family: "Open Sans", Arial, sans-serif;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      .remarks label {
+        display: block;
+        font-size: 14px;
+        margin-top: 10px;
+        color: #333;
+      }
+
+      .remarks p {
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      /* Thank You */
+      .thank-you {
+        color: #8b0000;
+        text-align: left;
+        font-size: 22px;
+        font-weight: 600;
+        margin: 25px 0;
+        padding-left: 10px;
+      }
+      /* Bottom Section */
+      .bottom-section {
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 0;
+      }
+
+      .signature-section {
+        width: 45%;
+      }
+
+      .signature-header {
+        background: #8b0000;
+        color: white;
+        text-align: center;
+        padding: 8px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .signature-image {
+        margin-top: 10px;
+        width: 180px;
+      }
+
+      .totals {
+        width: 40%; /* Reduced from 45% */
+        margin-left: auto; /* Aligns to the right */
+      }
+
+      .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 10px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-top: none;
+      }
+
+      .total-row:first-child {
+        border-top: 1px solid #ddd;
+      }
+
+      .total-row.final {
+        background: #8b0000;
+        color: white;
+        font-weight: 600;
+      }
+
+      /* Footer */
+      .footer {
+        background: #8b0000;
+        color: white;
+        padding: 20px 40px;
+        margin-top: 0;
+      }
+
+      .footer-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .footer-left {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .footer-logo {
+        width: 50px;
+        height: auto;
+      }
+
+      .footer-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .footer-info p {
+        font-size: 14px;
+        line-height: 1.2;
+        margin: 0;
+        font-weight: 300;
+      }
+
+      .footer-contact {
+        text-align: right;
+      }
+
+      .footer-contact p {
+        font-size: 13px;
+        line-height: 1.2;
+        margin: 0;
+        font-weight: 300;
+      }
+
+      .footer-contact a {
+        color: white;
+        text-decoration: none;
+      }
+    </style>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-container">
+          <img src="horse-logo.png" alt="Company Logo" class="logo" />
+          <div class="company-info">
+            <h1>STATIONERY</h1>
+            <p>Company Slogan Here</p>
+          </div>
+        </div>
+        <div class="date-info">
+          <img src="templatelab-logo.png" alt="TemplateLAB Logo" />
+          <p>December 18, 2021</p>
+          <p>Purchase Order Date</p>
+        </div>
+      </div>
+
+      <!-- Order Title -->
+      <div class="order-title">
+        <h2>PURCHASE ORDER #1258820</h2>
+      </div>
+
+      <!-- Address Section -->
+      <div class="address-section">
+        <div class="address-block">
+          <h3>BILL TO</h3>
+          <p>ATTN: Name / Department</p>
+          <p>Company Name</p>
+          <p>252 Stationery Street</p>
+          <p>Manchester, IL 22565</p>
+          <p>(444) 456-9900</p>
+          <p>Email Address</p>
+        </div>
+        <div class="address-block">
+          <h3>SHIP TO</h3>
+          <p>ATTN: Name / Department</p>
+          <p>Company Name</p>
+          <p>252 Stationery Street</p>
+          <p>Manchester, IL 22565</p>
+          <p>(444) 456-9900</p>
+          <p>Email Address</p>
+        </div>
+      </div>
+
+      <!-- Shipping Info -->
+      <div class="shipping-info">
+        <div class="shipping-header">
+          <div>SHIPPING METHOD AND SHIPPING TERMS</div>
+          <div>SHIP VIA</div>
+          <div>PAYMENT</div>
+          <div>DELIVERY DATE</div>
+        </div>
+        <div class="shipping-content">
+          <div>Express shipment / Paid by customer</div>
+          <div>DHL</div>
+          <div>NET 30</div>
+          <div>2021-12-31</div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="items-table">
+        <div class="items-header grid-row">
+          <div>ITEM NO.</div>
+          <div>DESCRIPTION</div>
+          <div>QTY</div>
+          <div>UNIT PRICE</div>
+          <div>TOTAL</div>
+        </div>
+        <div class="items-row grid-row">
+          <div>AX100</div>
+          <div>Item from stock</div>
+          <div>10</div>
+          <div>$100.00</div>
+          <div>$1,000.00</div>
+        </div>
+        <div class="items-row grid-row">
+          <div>BX200</div>
+          <div>Service description</div>
+          <div>5</div>
+          <div>$25.00</div>
+          <div>$125.00</div>
+        </div>
+        <div class="items-row grid-row">
+          <div>CX300</div>
+          <div>Describe item#3</div>
+          <div>10</div>
+          <div>$5.00</div>
+          <div>$50.00</div>
+        </div>
+        <div class="items-row grid-row">
+          <div>DX400</div>
+          <div>Describe item#4</div>
+          <div>5</div>
+          <div>$10.00</div>
+          <div>$50.00</div>
+        </div>
+      </div>
+
+      <div class="remarks-and-totals">
+        <!-- Remarks Section -->
+        <div class="remarks">
+          <h3>Remarks / Instructions:</h3>
+          <textarea
+            class="remarks-box"
+            placeholder="Enter your remarks or special instructions here"
+          ></textarea>
+        </div>
+
+        <!-- Totals Section -->
+        <div class="totals-container">
+          <div class="total-row">
+            <span>SUBTOTAL</span>
+            <span>$1,225.00</span>
+          </div>
+          <div class="total-row">
+            <span>DISCOUNT</span>
+            <span>$50.00</span>
+          </div>
+          <div class="total-row">
+            <span>SUBTOTAL LESS DISCOUNT</span>
+            <span>$1,175.00</span>
+          </div>
+          <div class="total-row">
+            <span>TAX RATE</span>
+            <span>10.00%</span>
+          </div>
+          <div class="total-row">
+            <span>TOTAL TAX</span>
+            <span>$117.50</span>
+          </div>
+          <div class="total-row">
+            <span>SHIPPING/HANDLING</span>
+            <span>$50.00</span>
+          </div>
+          <div class="total-row">
+            <span>OTHER</span>
+            <span>$50.00</span>
+          </div>
+          <div class="total-row final">
+            <span>TOTAL</span>
+            <span>$1,392.50</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thank You -->
+      <div class="thank-you">THANK YOU</div>
+
+      <!-- Bottom Section -->
+      <div class="bottom-section">
+        <div class="signature-section">
+          <div class="signature-header">AUTHORIZED SIGNATURE</div>
+          <img src="signature.png" alt="Signature" class="signature-image" />
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-content">
+          <div class="footer-left">
+            <img src="horse-logo.png" alt="Company Logo" class="footer-logo" />
+            <div class="footer-info">
+              <p>STATIONERY (COMPANY NAME)</p>
+              <p>123 Main Street</p>
+              <p>Georgetown, OH 24410</p>
+            </div>
+          </div>
+          <div class="footer-contact">
+            <p>For questions concerning this Purchase Order, please contact</p>
+            <p>John Doe, (555) 112-7890, john.doe@stationery.com</p>
+            <p>www.stationerywebaddress.com</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
