@@ -128,11 +128,9 @@ export const helper = async (req, res) => {
 export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, date, transport, order } = req.body;
-    if (order.length === 0 || !vendorId || !date || !transport) {
-      return res.status(400).json({ message: "Fill all the fields" });
-    }
-
+    const { vendorId, date, transport, order, template } = req.body;
+    if (order.length === 0 || !vendorId || !date || !transport)
+      return res.status(400).json({ message: "fill all the fields" });
     const po = await PurchaseOrdersModel.create({
       siteId,
       vendorId,
@@ -143,9 +141,19 @@ export const CreatePo = async (req, res) => {
     await po.save();
 
     const PurOrder = await PurchaseOrdersModel.findById(po._id)
-      .populate("vendorId siteId")
-      .populate("order.productId")
-      .populate("siteId.engineerId");
+      .populate("vendorId") // Populate vendor details
+      .populate({
+        path: "siteId", // Populate site details
+        populate: [
+          { path: "engineerId", model: "Engineers" }, // Populate engineer within site
+        ],
+      })
+      .populate({
+        path: "order.productId", // Populate products in the order
+        populate: { path: "siteId", model: "Sites" }, // Nested population: Product -> Site
+      })
+      .lean();
+    PurOrder.date = new Date(PurOrder.date).toLocaleDateString("en-US");
 
     // Generate HTML from Template
     const generateHTML = (templatePath, data) => {
@@ -170,15 +178,18 @@ export const CreatePo = async (req, res) => {
     };
 
     // Main Execution
-    const html = generateHTML("./PoTemplates/template1.html", { PurOrder });
+    const html = generateHTML(
+      `./PoTemplates/template${template}.html`,
+      PurOrder
+    );
     const pdfBuffer = await generatePDFBuffer(html);
 
     // Set response headers to send PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=purchase_order.pdf");
 
-    // Send the buffer directly as response
-    res.end(pdfBuffer); // Use `res.end()` to send raw binary data
+    // Send PDF Buffer as response
+    res.end(pdfBuffer);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong", error: error.message });
@@ -203,12 +214,12 @@ export const CreatePr = async (req, res) => {
       order,
     });
     await pr.save();
-    res.status(200).json(pr);
 
-    // const PurOrder = await PurchaseOrdersModel.findById(pr._id)
-    //   .populate("vendorId siteId")
-    //   .populate("order.productId")
-    //   .populate("siteId.engineerId");
+    const PurOrder = await PurchaseOrdersModel.findById(pr._id)
+      .populate("vendorId siteId")
+      .populate("order.productId")
+      .populate("siteId.engineerId");
+    console.log(PurOrder);
 
     // // Generate HTML from Template
     // const generateHTML = (templatePath, data) => {
@@ -239,6 +250,7 @@ export const CreatePr = async (req, res) => {
 
     // // Send PDF Buffer as response
     // res.send(pdfBuffer);
+    res.status(200).json(pr);
   } catch (error) {
     console.log(error);
     res

@@ -117,16 +117,13 @@
     <header>
       <div class="company-details">
         <div class="flex">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Wikimedia_Brand_Guidelines_Update_2022_Wikimedia_Logo_Brandmark.png"
-            alt="Company Logo"
-          />
-          <p>{{companyDetails.name}}</p>
+          <img src="{{siteId.engineerId.companyLogo}}" alt="Company Logo" />
+          <p>{{siteId.engineerId.companyName}}</p>
         </div>
         <span style="margin-left: 10px">
-          <p>{{companyDetails.address}}</p>
-          <p>{{companyDetails.gstIn}}</p>
-          <p>{{companyDetails.phoneNo}}</p>
+          <p>{{siteId.engineerId.address}}</p>
+          <p>{{siteId.engineerId.email}}</p>
+          <p>{{siteId.engineerId.phoneNo}}</p>
         </span>
       </div>
       <div class="purchase-order">
@@ -147,8 +144,8 @@
       </div>
       <div>
         <h3>SHIP TO</h3>
-        <p><strong>Site:</strong> {{siteId.name}}</p>
-        <p><strong>Address:</strong> {{siteId.address}}</p>
+        <p><strong>Site:</strong> {{siteId.siteName}}</p>
+        <p><strong>Address:</strong> {{siteId.siteAddress}}</p>
         <p><strong>Transport:</strong> {{transport}}</p>
       </div>
     </section>
@@ -179,7 +176,7 @@
     </section>
 
     <footer>
-      <p>{{companyDetails.contact}}</p>
+      <p>{{siteId.engineerId.email}}</p>
     </footer>
   </body>
 </html>

@@ -240,74 +240,64 @@
 
       <div class="company-section">
         <div class="company-info">
-          <h2>Ad4tech Material LLC</h2>
-          <p>
-            67h, Martin street<br />
-            Alexander road<br />
-            576832<br />
-            Mobile: +123456789<br />
-            Email: ad4example@gmail.com
-          </p>
+          <h2>{{siteId.engineerId.companyName}}</h2>
+          <p>{{siteId.engineerId.address}}</p>
+          <p>{{siteId.engineerId.email}}</p>
+          <p>{{siteId.engineerId.phoneNo}}</p>
         </div>
         <div class="logo">
-          <img src="logo.png" alt="Company Logo" />
+          <img src="{{siteId.engineerId.companyLogo}}" alt="Company Logo" />
         </div>
       </div>
 
       <div class="order-details">
         <div class="supplier-info">
-          <h2>Supplier</h2>
-          <p>
-            Green1 Materials LLC<br />
-            #34, Car street<br />
-            City park<br />
-            Honk Kong
-          </p>
+          <h2>Vendor</h2>
+          <p><strong>Name:</strong> {{vendorId.name}}</p>
+          <p><strong>Address:</strong> {{vendorId.address}}</p>
+          <p><strong>GSTIN:</strong> {{vendorId.gstIn}}</p>
+          <p><strong>Phone:</strong> {{vendorId.phoneNo}}</p>
+          <p><strong>Owner:</strong> {{vendorId.ownerName}}</p>
         </div>
         <div class="po-info">
           <p>
-            <span class="black">PO No :</span><span class="black">PO-001</span>
+            <span class="black">PO No :</span
+            ><span class="black"> {{_id}}</span>
           </p>
-          <p><span>Date :</span><span>Jun 22, 2021</span></p>
+          <p><span>Date :</span><span>{{date}}</span></p>
+          <div>
+            <h3>SHIP TO</h3>
+            <p><strong>Site:</strong> {{siteId.siteName}}</p>
+            <p><strong>Address:</strong> {{siteId.siteAddress}}</p>
+            <p><strong>Transport:</strong> {{transport}}</p>
+          </div>
         </div>
       </div>
 
       <table>
         <thead>
-          <tr class="head">
-            <th>Sl.</th>
+          <tr>
+            <th>Item #</th>
             <th>Description</th>
+            <th>Category</th>
             <th>Qty</th>
-            <th>Rate</th>
-            <th>Amount</th>
+            <th>Unit</th>
           </tr>
         </thead>
         <tbody>
+          {{#each order}}
           <tr>
-            <td>1</td>
-            <td>Desktop furniture</td>
-            <td>1</td>
-            <td>$ 232.00</td>
-            <td>$ 232.00</td>
+            <td>{{@index}}</td>
+            <td>{{productId.name}}</td>
+            <td>{{productId.category}}</td>
+            <td>{{requiredQty}}</td>
+            <td>{{productId.unit}}</td>
           </tr>
-          <tr>
-            <td>2</td>
-            <td>Plumbing and electrical services</td>
-            <td>2</td>
-            <td>$ 514.00</td>
-            <td>$ 1,028.00</td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td>Water tank repair works</td>
-            <td>2</td>
-            <td>$ 152.00</td>
-            <td>$ 304.00</td>
-          </tr>
+          {{/each}}
         </tbody>
       </table>
 
-      <div class="footer-section">
+      <!-- <div class="footer-section">
         <div class="payment-instructions">
           <h2>Payment Instructions</h2>
           <p>
@@ -332,12 +322,12 @@
             ><span class="amount">$ 1,332.00</span>
           </p>
         </div>
-      </div>
+      </div> -->
 
-      <div class="signature">
+      <!-- <div class="signature">
         <img src="signature.png" alt="Signature" />
         <p>Authorized Signatory</p>
-      </div>
+      </div> -->
     </div>
   </body>
 </html>
