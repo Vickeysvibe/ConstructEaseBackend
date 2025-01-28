@@ -8,6 +8,8 @@ import PurchaseOrders from "./Routes/purchaseOrders.routes.js";
 import sites from "./Routes/sites.routes.js";
 import reports from "./Routes/reports.routes.js";
 import auth from "./Routes/auth.routes.js";
+import  materialReport from './Routes/materialReport.routes.js'
+// import testing from "./testing/testing.routes.js";
 import materials from "./Routes/materials.routes.js";
 import paymentRoutes from "./Routes/Payments.routes.js";
 import attendance from "./Routes/attendance.routes.js";
@@ -26,6 +28,10 @@ export const routing = (app) => {
   app.use("/api/purchase", PurchaseOrders);
   app.use("/api/materials", materials);
   app.use("/api/sites", sites);
+  app.use("/api/material",materialReport)
+//   app.use("/api/testing", testing);
+  app.use("/todo",todoRoutes);
+
   app.use("/api/reports", reports);
   app.use("/api/testing", testing);
   app.use("/todo", todoRoutes);

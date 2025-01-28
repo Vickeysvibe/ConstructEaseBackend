@@ -128,7 +128,7 @@ export const helper = async (req, res) => {
 export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, date, transport, order, template } = req.body;
+    const { vendorId, date, transport, order } = req.body;
     if (order.length === 0 || !vendorId || !date || !transport)
       return res.status(400).json({ message: "fill all the fields" });
     const po = await PurchaseOrdersModel.create({
@@ -164,21 +164,27 @@ export const CreatePo = async (req, res) => {
 
     // Generate PDF and Return as Buffer
     const generatePDFBuffer = async (html) => {
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
-      const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-      await browser.close();
-      return pdfBuffer;
+      try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: "load" });
+        const pdfBuffer = await page.pdf({
+          format: "A4",
+          printBackground: true,
+        });
+        await browser.close();
+        return pdfBuffer;
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        throw new Error("PDF generation failed");
+      }
     };
 
     // Main Execution
-    const html = generateHTML(
-      `./PoTemplates/template${template}.html`,
-      PurOrder
-    );
+    const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
     const pdfBuffer = await generatePDFBuffer(html);
-    // Set response headers
+
+    // Set response headers to send PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -186,7 +192,7 @@ export const CreatePo = async (req, res) => {
     );
 
     // Send PDF Buffer as response
-    res.end(pdfBuffer);
+    res.send(pdfBuffer);
   } catch (error) {
     console.log(error);
     res
