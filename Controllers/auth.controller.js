@@ -42,7 +42,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    const role = user.companyName ? "Engineer" : "Supervisor";
+    const role = user.companyName ? null : user.role;
     const token = await generateJwt(user, role);
     /* 
     const [geocodedLocation] = await geocoder.reverse({

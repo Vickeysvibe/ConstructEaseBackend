@@ -128,7 +128,7 @@ export const helper = async (req, res) => {
 export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, date, transport, order } = req.body;
+    const { vendorId, date, transport, order, template } = req.body;
     if (order.length === 0 || !vendorId || !date || !transport)
       return res.status(400).json({ message: "fill all the fields" });
     const po = await PurchaseOrdersModel.create({
@@ -181,7 +181,10 @@ export const CreatePo = async (req, res) => {
     };
 
     // Main Execution
-    const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
+    const html = generateHTML(
+      `./PoTemplates/template${template}.html`,
+      PurOrder
+    );
     const pdfBuffer = await generatePDFBuffer(html);
 
     // Set response headers to send PDF
@@ -192,7 +195,7 @@ export const CreatePo = async (req, res) => {
     );
 
     // Send PDF Buffer as response
-    res.send(pdfBuffer);
+    res.end(pdfBuffer);
   } catch (error) {
     console.log(error);
     res
