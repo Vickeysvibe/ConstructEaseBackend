@@ -8,14 +8,15 @@ import {
   deleteLabour,
 } from "../Controllers/labour.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
+import verifySite from "../Middlewares/verifysite.middleware.js";
 
 const router = express.Router();
 
-router.post("/create", verifyToken, createLabour);
-router.put("/update-labour/:labourId", verifyToken, updateLabour);
-router.get("/getAll", verifyToken, getAllLabours);
-router.get("/getById/:labourId", verifyToken, getLabourById);
-router.post("/upload", verifyToken, uploadExcel);
-router.delete("/labours/:labourId",verifyToken, deleteLabour); 
+router.post("/create", verifyToken,verifySite,createLabour);
+router.put("/update-labour/:labourId", verifyToken,verifySite, updateLabour);
+router.get("/getAll", verifyToken,verifySite, getAllLabours);
+router.get("/getById/:labourId", verifyToken,verifySite, getLabourById);
+router.post("/upload", verifyToken,verifySite, uploadExcel);
+router.delete("/labours/:labourId",verifyToken,verifySite, deleteLabour); 
 
 export default router;

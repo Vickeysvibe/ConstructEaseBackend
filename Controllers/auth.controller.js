@@ -29,7 +29,8 @@ export const login = async (req, res) => {
     }
 
     const role = user.companyName ? "Engineer" : "Supervisor";
-    const token = await generateJwt(user, role);
+    const scope = user.scope ? "global" :"local"
+    const token = await generateJwt(user, role,scope);
 
     return res.status(200).json({ token, user });
   } catch (error) {
