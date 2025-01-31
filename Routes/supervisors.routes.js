@@ -8,20 +8,20 @@ import {
   deleteSupervisor,
 } from "../Controllers/supervisor.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
+import onlyForEngineers from "../Middlewares/onlyForEngineers.middleware.js";
 
 const router = express.Router();
 
-router.post("/create", verifyToken, createSupervisor);
+router.post("/create", verifyToken,onlyForEngineers, createSupervisor);
 
-router.put("/update/:supervisorId", verifyToken, updateSupervisor);
+router.put("/update/:supervisorId", verifyToken,onlyForEngineers, updateSupervisor);
 
-router.get("/getsuppervisors/:siteId", verifyToken, getSupervisorsBySite);
+router.get("/getsuppervisors/:siteId", verifyToken,onlyForEngineers, getSupervisorsBySite);
 
-router.get("/getbyid/:supervisorId", verifyToken, getSupervisorById);
+router.get("/getbyid/:supervisorId", verifyToken,onlyForEngineers, getSupervisorById);
 
-router.post("/upload", verifyToken, uploadExcel);
+router.post("/upload", verifyToken,onlyForEngineers, uploadExcel);
 
-router.delete("/deletesupervisor/:supervisorId", deleteSupervisor); 
-
+router.delete("/deletesupervisor/:supervisorId",verifyToken,onlyForEngineers, deleteSupervisor); 
 
 export default router;

@@ -8,19 +8,20 @@ import {
   deleteClient,
 } from "../Controllers/client.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
+import verifySite from "../Middlewares/verifysite.middleware.js";
 
 const router = express.Router();
 
-router.post("/create", verifyToken, createClient); //tested
+router.post("/create", verifyToken,verifySite, createClient); //tested
 
-router.put("/update/:clientId", verifyToken, updateClient); //tested
+router.put("/update/:clientId", verifyToken,verifySite, updateClient); //tested
 
-router.get("/getAll", verifyToken, getAllClients); //tested
+router.get("/getAll", verifyToken,verifySite, getAllClients); //tested
 
-router.get("/get/:clientId", verifyToken, getClientById); //not needed
+router.get("/get/:clientId", verifyToken,verifySite, getClientById); //not needed
 
-router.post("/upload", verifyToken, upload); //yet to be tested
+router.post("/upload", verifyToken,verifySite, upload); //yet to be tested
 
-router.delete("/deleteclient/:clientId", deleteClient); //tested
+router.delete("/deleteclient/:clientId",verifyToken,verifySite, deleteClient); //tested
 
 export default router;
