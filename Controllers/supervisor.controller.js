@@ -17,7 +17,7 @@ export const createSupervisor = async (req, res) => {
             "the supervisor is alredy a global supervisor so no need to add",
         });
       const site = await Sites.findById(siteId);
-      console.log(site)
+      console.log(site);
       site.supervisorsId.push(supervisorExists._id);
       await site.save();
       return res.status(201).json({ message: "Supervisor added" });
@@ -49,11 +49,10 @@ export const createSupervisor = async (req, res) => {
       supervisor: newSupervisor,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
-
 
 export const updateSupervisor = async (req, res) => {
   try {
@@ -95,13 +94,11 @@ export const getSupervisorsBySite = async (req, res) => {
   try {
     const { siteId } = req.query;
     const { scope } = req.query;
-    console.log(siteId);
-    console.log(scope);
 
     if (!siteId) {
       return res.status(400).json({ message: "Site ID is required" });
     }
-    const matchCondition = { isDel: false }; 
+    const matchCondition = { isDel: false }; // Common condition
 
     if (scope === "local") {
       matchCondition.role = "local";
@@ -111,6 +108,7 @@ export const getSupervisorsBySite = async (req, res) => {
 
     const site = await Sites.findById(siteId).populate({
       path: "supervisorsId",
+      match: matchCondition,
       match: matchCondition,
     });
 
@@ -126,7 +124,7 @@ export const getSupervisorsBySite = async (req, res) => {
 
     res.status(200).json(site.supervisorsId);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -149,66 +147,66 @@ export const getSupervisorById = async (req, res) => {
   }
 };
 
-  export const uploadExcel = async (req, res) => {
-    try {
-      const { engineerId } = req.user;
-      const { siteId } = req.query;
+export const uploadExcel = async (req, res) => {
+  try {
+    const { engineerId } = req.user;
+    const { siteId } = req.query;
 
-      if (!req.files || !req.files.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      const file = req.files.file;
-      const workbook = XLSX.read(file.data, { type: "buffer" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-      const supervisors = [];
-      jsonData.forEach((row) => {
-        const { name, email, address, phoneNo, password, role } = row;
-        if (name && email && address && phoneNo && password && role) {
-          supervisors.push({
-            name,
-            email,
-            address,
-            phoneNo,
-            password,
-            role,
-            engineerId,
-          });
-        }
-      });
-
-      if (supervisors.length === 0) {
-        return res.status(400).json({ error: "No valid data found in the file" });
-      }
-
-      const savedSupervisors = await Supervisors.insertMany(supervisors);
-
-      if (siteId) {
-        const site = await Sites.findById(siteId);
-        if (!site) {
-          return res.status(404).json({ message: "Site not found" });
-        }
-
-        savedSupervisors.forEach((supervisor) => {
-          if (!site.supervisorsId.includes(supervisor._id)) {
-            site.supervisorsId.push(supervisor._id);
-          }
-        });
-
-        await site.save();
-      }
-
-      res.status(200).json({
-        message: "Supervisors uploaded successfully",
-        supervisors: savedSupervisors,
-      });
-    } catch (error) {
-      console.log(error)
-      res.status(500).json({ message: error.message });
+    if (!req.files || !req.files.file) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
-  };
+
+    const file = req.files.file;
+    const workbook = XLSX.read(file.data, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+    const supervisors = [];
+    jsonData.forEach((row) => {
+      const { name, email, address, phoneNo, password, role } = row;
+      if (name && email && address && phoneNo && password && role) {
+        supervisors.push({
+          name,
+          email,
+          address,
+          phoneNo,
+          password,
+          role,
+          engineerId,
+        });
+      }
+    });
+
+    if (supervisors.length === 0) {
+      return res.status(400).json({ error: "No valid data found in the file" });
+    }
+
+    const savedSupervisors = await Supervisors.insertMany(supervisors);
+
+    if (siteId) {
+      const site = await Sites.findById(siteId);
+      if (!site) {
+        return res.status(404).json({ message: "Site not found" });
+      }
+
+      savedSupervisors.forEach((supervisor) => {
+        if (!site.supervisorsId.includes(supervisor._id)) {
+          site.supervisorsId.push(supervisor._id);
+        }
+      });
+
+      await site.save();
+    }
+
+    res.status(200).json({
+      message: "Supervisors uploaded successfully",
+      supervisors: savedSupervisors,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 export const deleteSupervisor = async (req, res) => {
   try {
     const { supervisorId } = req.params;
@@ -245,11 +243,10 @@ export const deleteSupervisor = async (req, res) => {
   }
 };
 
-
 export const getGlobalSupervisors = async (req, res) => {
   try {
     const { engineerId } = req.user;
-    
+
     if (!engineerId) {
       return res.status(400).json({ message: "Engineer ID is required" });
     }
@@ -298,7 +295,7 @@ export const createGloablSupervisor = async (req, res) => {
       supervisor: newSupervisor,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };

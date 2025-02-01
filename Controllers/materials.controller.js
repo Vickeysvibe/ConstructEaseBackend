@@ -6,11 +6,21 @@ export const getAllMaterialInwards = async (req, res) => {
   const { siteId } = req.params;
   if (!siteId) return res.status(400).json({ message: "Site ID is required" });
   try {
-    const materials = await MaterialInwadsModel.find({ siteId: siteId })
-      .populate("POid", "vendorId")
-      .populate("POid.vendorId", "name");
+    const materials = await MaterialInwadsModel.find({ siteId })
+      .populate({
+        path: "POid",
+        select: "vendorId",
+        populate: { path: "vendorId" },
+      })
+      .populate({
+        path: "materials",
+        populate: { path: "productId", select: "name price" },
+      })
+      .lean();
+
     res.status(200).json(materials);
   } catch (err) {
+    console.log(err);
     res.status(500).json(err);
   }
 };
@@ -22,11 +32,17 @@ export const getMaterialInwardById = async (req, res) => {
     const { siteId } = req.query;
     if (!MIid || !siteId)
       return res.status(400).json({ message: "MI ID and siteId is required" });
-    const MI = await MaterialInwadsModel.findOne({ _id: MIid, siteId: siteId })
-      .populate("POid")
-      .populate("POid.vendorId")
-      .populate("POid.order.productId")
-      .populate("order.productId");
+    const MI = await MaterialInwadsModel.find({ siteId })
+      .populate({
+        path: "POid",
+        select: "vendorId",
+        populate: { path: "vendorId" },
+      })
+      .populate({
+        path: "materials",
+        populate: { path: "productId", select: "name price" },
+      })
+      .lean();
     res.status(200).json(MI);
   } catch (error) {
     res.status(500).json(error);
@@ -52,6 +68,7 @@ export const createMaterialInward = async (req, res) => {
       const newMat = new MaterialsModel({
         productId: product.productId,
         suppliedQty: product.suppliedQty,
+        availableQty: product.suppliedQty,
         siteId,
         fromVendor: vendorId,
         unitPrice: product.unitPrice,
@@ -77,12 +94,24 @@ export const createMaterialInward = async (req, res) => {
 //get Materials
 export const getMaterials = async (req, res) => {
   try {
-    const { siteId } = req.query;
+    const { siteId } = req.params;
     if (!siteId)
       return res.status(400).json({ message: "Site ID is required" });
-    await MaterialsModel.find({ siteId: siteId })
+    const materials = await MaterialsModel.find({ siteId: siteId })
       .populate("productId")
       .populate("fromVendor", "name");
+    const maters = [];
+    materials.map((mat) => {
+      const formattedMaterials = {};
+      formattedMaterials.matId = mat._id;
+      formattedMaterials.productName = mat.productId.name;
+      formattedMaterials.availableQty = mat.availableQty;
+      formattedMaterials.fromVendor = mat.fromVendor.name;
+      formattedMaterials.suppliedQty = mat.suppliedQty;
+      formattedMaterials.usedQty = mat.usedQty;
+      maters.push(formattedMaterials);
+    });
+    res.status(200).json(maters);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -95,6 +124,8 @@ export const editMaterial = async (req, res) => {
     const mat = await MaterialsModel.findById(matId);
     if (!mat) return res.status(404).json({ message: "Material not found" });
     const { usedQty } = req.body;
+    console.log(typeof usedQty);
+    console.log(usedQty);
     mat.usedQty = usedQty;
     mat.availableQty = mat.availableQty - usedQty;
     await mat.save();

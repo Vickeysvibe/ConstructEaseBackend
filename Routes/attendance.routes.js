@@ -7,12 +7,13 @@ import {
 } from "../Controllers/labourAttendance.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 import { paymentReport } from "../Controllers/paymentReport.controller.js";
+import verifySite from "../Middlewares/verifysite.middleware.js";
 
 const router = express.Router();
 
-router.get("/labours", verifyToken, getLabours);
-router.get("/supervisors", verifyToken, getSupervisors);
-router.post("/labouratt", verifyToken, attendance);
-router.put("/updateshift", verifyToken, updateShift);
+router.get("/labours", verifyToken,verifySite, getLabours);
+router.get("/supervisors", verifyToken,verifySite, getSupervisors);
+router.post("/labouratt", verifyToken,verifySite, attendance);
+router.put("/updateshift", verifyToken,verifySite, updateShift);
 
 export default router;

@@ -11,12 +11,22 @@ import Handlebars from "handlebars";
 export const getAllPos = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const pos = await PurchaseOrdersModel.find({ siteId }).populate(
-      "vendorId",
-      "name"
-    );
+    const pos = await PurchaseOrdersModel.find({ siteId })
+      .populate("vendorId", "name")
+      .lean();
+    let data = [];
+    pos.map((po) => {
+      const d = {
+        POid: po._id,
+        vendorName: po?.vendorId?.name || "unknown",
+        date: po.date,
+        transport: po.transport,
+        orderCount: po.order.length,
+      };
+      data.push(d);
+    });
 
-    res.status(200).json(pos);
+    res.status(200).json(data);
   } catch (error) {
     console.log(error);
     res
@@ -50,6 +60,7 @@ export const getPo = async (req, res) => {
     const pos = await PurchaseOrdersModel.findById(poid)
       .populate("vendorId siteId")
       .populate("order.productId");
+
     if (!pos.siteId)
       return res.status(404).json({ message: "No purchase orders found" });
     res.status(200).json(pos);
@@ -128,7 +139,7 @@ export const helper = async (req, res) => {
 export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, date, transport, order } = req.body;
+    const { vendorId, date, transport, order, template } = req.body;
     if (order.length === 0 || !vendorId || !date || !transport)
       return res.status(400).json({ message: "fill all the fields" });
     const po = await PurchaseOrdersModel.create({
@@ -181,7 +192,10 @@ export const CreatePo = async (req, res) => {
     };
 
     // Main Execution
-    const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
+    const html = generateHTML(
+      `./PoTemplates/template${template || 1}.html`,
+      PurOrder
+    );
     const pdfBuffer = await generatePDFBuffer(html);
 
     // Set response headers to send PDF
@@ -192,7 +206,7 @@ export const CreatePo = async (req, res) => {
     );
 
     // Send PDF Buffer as response
-    res.end.send(pdfBuffer);
+    res.end(pdfBuffer);
   } catch (error) {
     console.log(error);
     res
