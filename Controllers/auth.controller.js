@@ -5,7 +5,7 @@ import generateJwt from "../Utils/generateJWTtoken.js";
 
 export const login = async (req, res) => {
   try {
-    const { email, password,  } = req.body;
+    const { email, password } = req.body;
     if (!email || !password) {
       return res
         .status(400)
@@ -29,13 +29,11 @@ export const login = async (req, res) => {
     }
 
     const role = user.companyName ? "Engineer" : "Supervisor";
-    const scope = user.scope ? "global" :"local"
-    const token = await generateJwt(user, role,scope);
+    const scope = user.scope ? "global" : "local";
+    const token = await generateJwt(user, role, scope);
 
     return res.status(200).json({ token, user });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
-
-

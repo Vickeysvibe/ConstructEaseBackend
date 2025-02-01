@@ -47,4 +47,4 @@ MaterialSchema.pre("save", function (next) {
   next();
 });
 
-export default mongoose.model("Material", MaterialSchema);
+export default mongoose.model("Materials", MaterialSchema);

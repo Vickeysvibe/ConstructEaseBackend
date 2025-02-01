@@ -11,12 +11,22 @@ import Handlebars from "handlebars";
 export const getAllPos = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const pos = await PurchaseOrdersModel.find({ siteId }).populate(
-      "vendorId",
-      "name"
-    );
+    const pos = await PurchaseOrdersModel.find({ siteId })
+      .populate("vendorId", "name")
+      .lean();
+    let data = [];
+    pos.map((po) => {
+      const d = {
+        POid: po._id,
+        vendorName: po?.vendorId?.name || "unknown",
+        date: po.date,
+        transport: po.transport,
+        orderCount: po.order.length,
+      };
+      data.push(d);
+    });
 
-    res.status(200).json(pos);
+    res.status(200).json(data);
   } catch (error) {
     console.log(error);
     res
@@ -50,6 +60,7 @@ export const getPo = async (req, res) => {
     const pos = await PurchaseOrdersModel.findById(poid)
       .populate("vendorId siteId")
       .populate("order.productId");
+
     if (!pos.siteId)
       return res.status(404).json({ message: "No purchase orders found" });
     res.status(200).json(pos);
@@ -164,21 +175,30 @@ export const CreatePo = async (req, res) => {
 
     // Generate PDF and Return as Buffer
     const generatePDFBuffer = async (html) => {
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
-      const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-      await browser.close();
-      return pdfBuffer;
+      try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: "load" });
+        const pdfBuffer = await page.pdf({
+          format: "A4",
+          printBackground: true,
+        });
+        await browser.close();
+        return pdfBuffer;
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        throw new Error("PDF generation failed");
+      }
     };
 
     // Main Execution
     const html = generateHTML(
-      `./PoTemplates/template${template}.html`,
+      `./PoTemplates/template${template || 1}.html`,
       PurOrder
     );
     const pdfBuffer = await generatePDFBuffer(html);
-    // Set response headers
+
+    // Set response headers to send PDF
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",

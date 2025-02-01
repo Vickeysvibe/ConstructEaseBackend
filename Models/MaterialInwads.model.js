@@ -28,4 +28,8 @@ const MaterialInwardSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("MaterialInwards", MaterialInwardSchema);
+const MaterialInwards =
+  mongoose.models.MaterialInwards ||
+  mongoose.model("MaterialInwards", MaterialInwardSchema);
+
+export default MaterialInwards;

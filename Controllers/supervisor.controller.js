@@ -52,7 +52,6 @@ export const createSupervisor = async (req, res) => {
   }
 };
 
-
 export const updateSupervisor = async (req, res) => {
   try {
     const { supervisorId } = req.params;
@@ -92,14 +91,22 @@ export const updateSupervisor = async (req, res) => {
 export const getSupervisorsBySite = async (req, res) => {
   try {
     const { siteId } = req.query;
+    const { scope } = req.query;
 
     if (!siteId) {
       return res.status(400).json({ message: "Site ID is required" });
     }
+    const matchCondition = { isDel: false }; // Common condition
+
+    if (scope === "local") {
+      matchCondition.role = "local";
+    } else if (scope === "global") {
+      matchCondition.role = "global";
+    }
 
     const site = await Sites.findById(siteId).populate({
       path: "supervisorsId",
-      match: { isDel: false },
+      match: matchCondition,
     });
 
     if (!site) {
