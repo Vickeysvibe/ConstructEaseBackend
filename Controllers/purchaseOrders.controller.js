@@ -128,7 +128,7 @@ export const helper = async (req, res) => {
 export const CreatePo = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, date, transport, order, template } = req.body;
+    const { vendorId, date, transport, order } = req.body;
     if (order.length === 0 || !vendorId || !date || !transport)
       return res.status(400).json({ message: "fill all the fields" });
     const po = await PurchaseOrdersModel.create({
@@ -168,7 +168,10 @@ export const CreatePo = async (req, res) => {
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         await page.setContent(html, { waitUntil: "load" });
-        const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+        const pdfBuffer = await page.pdf({
+          format: "A4",
+          printBackground: true,
+        });
         await browser.close();
         return pdfBuffer;
       } catch (error) {
@@ -178,25 +181,25 @@ export const CreatePo = async (req, res) => {
     };
 
     // Main Execution
-    const html = generateHTML(
-      `./PoTemplates/template${template}.html`,
-      PurOrder
-    );
+    const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
     const pdfBuffer = await generatePDFBuffer(html);
 
     // Set response headers to send PDF
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=purchase_order.pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=purchase_order.pdf"
+    );
 
     // Send PDF Buffer as response
-    res.end(pdfBuffer);
+    res.end.send(pdfBuffer);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Something went wrong", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
   }
 };
-
-
 
 //create purchase order
 export const CreatePr = async (req, res) => {

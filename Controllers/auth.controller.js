@@ -111,7 +111,7 @@ export const login = async (req, res) => {
       await attendanceRecord.save();
     } */
 
-    return res.status(200).json({ token, user });
+    return res.status(200).json({ token, user,role });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

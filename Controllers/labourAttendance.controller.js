@@ -9,13 +9,25 @@ export const attendance = async (req, res) => {
     const { siteId } = req.query;
 
     if (!labourIds || labourIds.length === 0) {
-      return res.status(400).json({ message: "No labour IDs provided" });
+      return res.status(400).json({ message: "No labor IDs provided" });
     }
 
     if (!siteId) {
-      return res.status(400).json({ message: "siteId is required" });
+      return res.status(400).json({ message: "Site ID is required" });
     }
 
+    const validLabors = await LabourModel.find({
+      _id: { $in: labourIds },
+      siteId,
+    }).select("_id");
+
+    if (validLabors.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No matching labor IDs for the provided site" });
+    }
+
+    const validLaborIds = validLabors.map((labor) => labor._id.toString());
     const currentDate = new Date().setHours(0, 0, 0, 0);
 
     let attendanceDoc = await LabourAttendanceModel.findOne({
@@ -31,7 +43,15 @@ export const attendance = async (req, res) => {
       });
     }
 
-    labourIds.forEach((labourId) => {
+    const existingLaborIds = attendanceDoc.attendance.map((entry) =>
+      entry.labourId.toString()
+    );
+
+    const newLaborIds = validLaborIds.filter(
+      (id) => !existingLaborIds.includes(id)
+    );
+
+    newLaborIds.forEach((labourId) => {
       attendanceDoc.attendance.push({
         labourId,
         status: "present",
@@ -40,6 +60,7 @@ export const attendance = async (req, res) => {
     });
 
     await attendanceDoc.save();
+    console.log("Attendance document stored");
 
     const populatedDoc = await LabourAttendanceModel.findOne({
       siteId,
