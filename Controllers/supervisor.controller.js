@@ -17,6 +17,7 @@ export const createSupervisor = async (req, res) => {
             "the supervisor is alredy a global supervisor so no need to add",
         });
       const site = await Sites.findById(siteId);
+      console.log(site);
       site.supervisorsId.push(supervisorExists._id);
       await site.save();
       return res.status(201).json({ message: "Supervisor added" });
@@ -48,6 +49,7 @@ export const createSupervisor = async (req, res) => {
       supervisor: newSupervisor,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -107,6 +109,7 @@ export const getSupervisorsBySite = async (req, res) => {
     const site = await Sites.findById(siteId).populate({
       path: "supervisorsId",
       match: matchCondition,
+      match: matchCondition,
     });
 
     if (!site) {
@@ -121,6 +124,7 @@ export const getSupervisorsBySite = async (req, res) => {
 
     res.status(200).json(site.supervisorsId);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -145,7 +149,7 @@ export const getSupervisorById = async (req, res) => {
 
 export const uploadExcel = async (req, res) => {
   try {
-    const { engineerId } = req.query;
+    const { engineerId } = req.user;
     const { siteId } = req.query;
 
     if (!req.files || !req.files.file) {
@@ -199,6 +203,7 @@ export const uploadExcel = async (req, res) => {
       supervisors: savedSupervisors,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -234,6 +239,63 @@ export const deleteSupervisor = async (req, res) => {
       supervisor: updatedSupervisor,
     });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getGlobalSupervisors = async (req, res) => {
+  try {
+    const { engineerId } = req.user;
+
+    if (!engineerId) {
+      return res.status(400).json({ message: "Engineer ID is required" });
+    }
+
+    const globalSupervisors = await Supervisors.find({
+      engineerId,
+      role: "global",
+    });
+
+    if (globalSupervisors.length === 0) {
+      return res.status(404).json({ message: "No global supervisors found" });
+    }
+
+    res.status(200).json(globalSupervisors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const createGloablSupervisor = async (req, res) => {
+  try {
+    const { name, email, address, phoneNo, password, role } = req.body;
+    const { engineerId } = req.user;
+
+    const supervisorExists = await Supervisors.findOne({ email });
+    if (supervisorExists) {
+      if (supervisorExists.role === "global")
+        return res.status(208).json({
+          message:
+            "the supervisor is alredy a global supervisor so no need to add",
+        });
+    }
+
+    const newSupervisor = new Supervisors({
+      name,
+      email,
+      address,
+      phoneNo,
+      password,
+      role,
+      engineerId,
+    });
+    await newSupervisor.save();
+    res.status(201).json({
+      message: "Supervisor created successfully",
+      supervisor: newSupervisor,
+    });
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };

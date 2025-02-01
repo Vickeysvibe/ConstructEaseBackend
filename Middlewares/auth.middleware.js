@@ -10,7 +10,7 @@ export const verifyToken = async (req, res, next) => {
         .json({ message: "No token provided", redirect: true });
     }
 
-    // Extract token from Bearer token
+    console.log(authHeader)
     const token = authHeader.split(" ")[1];
 
     // Check if token exists after splitting
