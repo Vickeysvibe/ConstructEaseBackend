@@ -144,6 +144,7 @@ export const deleteClient = async (req, res) => {
 
         res.status(200).json({ message: "Client deleted successfully", client: deletedClient });
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             message: error.message,
             redirectUrl: 'http://.....', 

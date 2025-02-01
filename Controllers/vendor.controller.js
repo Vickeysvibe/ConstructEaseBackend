@@ -21,6 +21,7 @@ export const createVendor = async (req, res) => {
         await newVendor.save();
         res.status(201).json({ message: "Vendor created successfully", vendor: newVendor });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };
