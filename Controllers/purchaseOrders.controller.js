@@ -182,7 +182,7 @@ export const CreatePo = async (req, res) => {
 
     // Main Execution
     const html = generateHTML(
-      `./PoTemplates/template${template}.html`,
+      `./PoTemplates/template${template || 1}.html`,
       PurOrder
     );
     const pdfBuffer = await generatePDFBuffer(html);
