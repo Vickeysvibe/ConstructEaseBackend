@@ -11,12 +11,22 @@ import Handlebars from "handlebars";
 export const getAllPos = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const pos = await PurchaseOrdersModel.find({ siteId }).populate(
-      "vendorId",
-      "name"
-    );
+    const pos = await PurchaseOrdersModel.find({ siteId })
+      .populate("vendorId", "name")
+      .lean();
+    let data = [];
+    pos.map((po) => {
+      const d = {
+        POid: po._id,
+        vendorName: po?.vendorId?.name || "unknown",
+        date: po.date,
+        transport: po.transport,
+        orderCount: po.order.length,
+      };
+      data.push(d);
+    });
 
-    res.status(200).json(pos);
+    res.status(200).json(data);
   } catch (error) {
     console.log(error);
     res
@@ -50,6 +60,7 @@ export const getPo = async (req, res) => {
     const pos = await PurchaseOrdersModel.findById(poid)
       .populate("vendorId siteId")
       .populate("order.productId");
+
     if (!pos.siteId)
       return res.status(404).json({ message: "No purchase orders found" });
     res.status(200).json(pos);
