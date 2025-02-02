@@ -28,17 +28,24 @@ export const attendance = async (req, res) => {
     }
 
     const validLaborIds = validLabors.map((labor) => labor._id.toString());
-    const currentDate = new Date().setHours(0, 0, 0, 0);
 
+    // Get the current date in UTC and set the time to midnight (UTC)
+    const currentDate = new Date();
+    currentDate.setUTCHours(0, 0, 0, 0);
+
+    // Remove time part from the currentDate (store only the date part in ISO format)
+    const dateOnly = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+    // Find the attendance document for the given site and date
     let attendanceDoc = await LabourAttendanceModel.findOne({
       siteId,
-      date: currentDate,
+      date: dateOnly, // Compare only the date part
     });
 
     if (!attendanceDoc) {
       attendanceDoc = new LabourAttendanceModel({
         siteId,
-        date: currentDate,
+        date: dateOnly, // Store only the date part
         attendance: [],
       });
     }
@@ -60,38 +67,63 @@ export const attendance = async (req, res) => {
     });
 
     await attendanceDoc.save();
-    console.log("Attendance document stored");
+    console.log("Attendance document stored successfully");
 
-    const populatedDoc = await LabourAttendanceModel.findOne({
-      siteId,
-      date: currentDate,
-    })
-      .populate("attendance.labourId", "name category wagesPerShift")
-      .select("attendance");
-
-    const attendanceResponse = populatedDoc.attendance.map((entry) => {
-      const labour = entry.labourId;
-      const shift = entry.shift || 1;
-      const wagesPerShift = labour.wagesPerShift || 0;
-      const total = shift * wagesPerShift;
-
-      return {
-        Name: labour.name,
-        Category: labour.category,
-        Shift: shift,
-        WagesPerShift: wagesPerShift,
-        Total: total,
-      };
-    });
-
-    res.status(200).json({
-      Attendance: attendanceResponse,
-    });
+    res.status(200).json({ message: "Attendance recorded successfully" });
   } catch (error) {
     console.error("Error in attendance:", error);
     res.status(500).json({ message: "Internal server error", error });
   }
 };
+
+
+export const todayAttendance = async (req, res) => {
+  const { siteId } = req.query;
+
+  if (!siteId) {
+    return res.status(400).json({ message: "Site ID is required" });
+  }
+
+  // Normalize current date (remove time part) in "YYYY-MM-DD" format
+  const currentDate = new Date();
+  currentDate.setUTCHours(0, 0, 0, 0); // Set to midnight UTC
+  const dateOnly = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+  // Find the attendance document for the given site and dateOnly
+  const populatedDoc = await LabourAttendanceModel.findOne({
+    siteId,
+    date: dateOnly, // Compare only the date part
+  })
+    .populate("attendance.labourId", "name category wagesPerShift")
+    .select("attendance");
+
+  if (!populatedDoc) {
+    return res.status(404).json({ message: "No attendance found for today." });
+  }
+
+  // Map the attendance entries and calculate total wages
+  const attendanceResponse = populatedDoc.attendance.map((entry) => {
+    const labour = entry.labourId;
+    const shift = entry.shift || 1;
+    const wagesPerShift = labour.wagesPerShift || 0;
+    const total = shift * wagesPerShift;
+    const id= labour._id
+
+    return {
+      Name: labour.name,
+      Category: labour.category,
+      Shift: shift,
+      WagesPerShift: wagesPerShift,
+      Total: total,
+      id:id
+    };
+  });
+
+  res.status(200).json({
+    attendanceResponse,
+  });
+};
+
 
 export const getLabours = async (req, res) => {
   try {
@@ -106,39 +138,40 @@ export const getLabours = async (req, res) => {
       category: labour.category,
       subCategory: labour.subCategory,
       wagesPerShift: labour.wagesPerShift,
+      id:labour._id
     }));
 
-    const subCategoryCounts = await LabourModel.aggregate([
-      { $match: { siteId: siteId } },
-      {
-        $group: {
-          _id: { category: "$category", subCategory: "$subCategory" },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $group: {
-          _id: "$_id.category",
-          subCategories: {
-            $push: {
-              subCategory: "$_id.subCategory",
-              count: "$count",
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          category: "$_id",
-          subCategories: "$subCategories",
-        },
-      },
-    ]);
+    // const subCategoryCounts = await LabourModel.aggregate([
+    //   { $match: { siteId: siteId } },
+    //   {
+    //     $group: {
+    //       _id: { category: "$category", subCategory: "$subCategory" },
+    //       count: { $sum: 1 },
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: "$_id.category",
+    //       subCategories: {
+    //         $push: {
+    //           subCategory: "$_id.subCategory",
+    //           count: "$count",
+    //         },
+    //       },
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 0,
+    //       category: "$_id",
+    //       subCategories: "$subCategories",
+    //     },
+    //   },
+    // ]);
 
     res.status(200).json({
       labourDetails,
-      subCategoryCounts,
+      // subCategoryCounts,
     });
   } catch (error) {
     console.error("Error fetching labour data:", error);
@@ -150,40 +183,30 @@ export const updateShift = async (req, res) => {
   try {
     const { labourId, newShift } = req.body;
     const { siteId } = req.query;
-    const currentDate = new Date().setHours(0, 0, 0, 0); // Normalize date
 
-    if (!labourId || !newShift) {
-      return res
-        .status(400)
-        .json({ message: "Labour ID and new shift are required." });
+    if (!labourId || !newShift || !siteId) {
+      return res.status(400).json({ message: "Missing required fields." });
     }
 
-    if (!siteId) {
-      return res.status(400).json({ message: "Site ID is required." });
-    }
-    const attendanceDoc = await LabourAttendanceModel.findOne({
-      siteId,
-      date: currentDate,
-    });
+    // Normalize current date (remove time part) in "YYYY-MM-DD" format
+    const currentDate = new Date();
+    currentDate.setUTCHours(0, 0, 0, 0); // Set to midnight UTC
+    const dateOnly = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
 
-    if (!attendanceDoc) {
-      return res.status(404).json({
-        message: "Attendance record not found for the site and date.",
-      });
-    }
-
-    // Find the specific labor entry in the attendance array
-    const laborEntry = attendanceDoc.attendance.find(
-      (entry) => entry.labourId.toString() === labourId
+    // Find and update the shift for the given site and dateOnly
+    const attendanceDoc = await LabourAttendanceModel.findOneAndUpdate(
+      {
+        siteId,
+        date: dateOnly, // Use the normalized date for comparison
+        "attendance.labourId": labourId,
+      },
+      { $set: { "attendance.$.shift": newShift } },
+      { new: true }
     );
 
-    if (!laborEntry) {
-      return res
-        .status(404)
-        .json({ message: "Labour not found in attendance records." });
+    if (!attendanceDoc) {
+      return res.status(404).json({ message: "Attendance record not found." });
     }
-    laborEntry.shift = newShift;
-    await attendanceDoc.save();
 
     res.status(200).json({ message: "Shift updated successfully." });
   } catch (error) {
@@ -200,28 +223,39 @@ export const getSupervisors = async (req, res) => {
       return res.status(400).json({ message: "Site ID is required." });
     }
 
+    const today = new Date();
+    const todayISO = today.toISOString().split("T")[0];
+
     const supervisorsAttendance = await SupervisorAttendancesModel.findOne({
       siteId,
-      date: { $gte: new Date("2025-01-21").setHours(0, 0, 0, 0) }, // Normalize date
+      date: {
+        $gte: new Date(`${todayISO}T00:00:00.000Z`),
+        $lte: new Date(`${todayISO}T23:59:59.999Z`),
+      },
     }).populate("attendance.supervisorId", "name");
-    // .select("location checkin checkout supervisorId ");
 
-    console.log(supervisorsAttendance);
-    console.log(supervisorsAttendance.attendance);
+    if (!supervisorsAttendance || !supervisorsAttendance.attendance.length) {
+      return res.status(200).json({ message: "No attendance found for today." });
+    }
 
-    const formattedAttendance = supervisorsAttendance.attendance.map(
-      (attendance) => ({
-        name: attendance.supervisorId.name,
-        location: attendance.location,
-        checkinTime: attendance.checkin,
-        checkoutTime: attendance.checkout,
-      })
-    );
+    // Iterate through attendance records
+    const formattedAttendance = supervisorsAttendance.attendance.map((attendance) => {
+      const checkinTimes = attendance.checkin || []; // Ensure it's an array
+      const checkoutTimes = attendance.checkout || []; // Ensure it's an array
+      const lastCheckin = checkinTimes.length ? checkinTimes[checkinTimes.length - 1] : "N/A";
+      const lastCheckout = checkoutTimes.length ? checkoutTimes[checkoutTimes.length - 1] : "N/A";
+
+      return {
+        name: attendance.supervisorId?.name || "Unknown",
+        location: attendance.location || "N/A",
+        checkinTime: lastCheckin,
+        checkoutTime: lastCheckout,
+      };
+    });
+
     res.status(200).json(formattedAttendance);
   } catch (error) {
     console.error("Error fetching supervisors:", error);
-    res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
