@@ -41,10 +41,20 @@ export const getAllPrs = async (req, res) => {
     const { siteId } = req.query;
     const prs = await PurchaseReturnsModel.find({ siteId })
       .populate("POid", "vendorId")
-      .populate("POid.vendorId", "name");
-    if (prs.length === 0)
-      return res.status(404).json({ message: "No purchase returns found" });
-    res.status(200).json(prs);
+      .populate("POid.vendorId", "name")
+      .lean();
+    let data = [];
+    prs.map((po) => {
+      const d = {
+        POid: po._id,
+        vendorName: po?.POid.vendorId?.name || "unknown",
+        date: po?.POid.date,
+        transport: po.POid.transport,
+        orderCount: po.POid.order.length,
+      };
+      data.push(d);
+    });
+    res.status(200).json(data);
   } catch (error) {
     console.log(error);
     res
