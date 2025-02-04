@@ -20,7 +20,7 @@ export const downloadExcelReport = async (req, res) => {
     }
 
 
-    let siteQuery = siteId;  // Default: assume siteId is a string
+    let siteQuery = siteId;  
     if (mongoose.Types.ObjectId.isValid(siteId)) {
       siteQuery = new mongoose.Types.ObjectId(siteId);
     }
@@ -41,7 +41,6 @@ export const downloadExcelReport = async (req, res) => {
       );
     }
 
-    // Check Product collection
     const productRecords = await Product.find({ _id: { $in: ids }, siteId: siteQuery });
     if (productRecords.length > 0) {
       finalData = finalData.concat(
@@ -55,7 +54,6 @@ export const downloadExcelReport = async (req, res) => {
       );
     }
 
-    // Check Supervisor collection (No siteId filter applied)
     const supervisorRecords = await Supervisor.find({ _id: { $in: ids } });
     if (supervisorRecords.length > 0) {
       finalData = finalData.concat(
@@ -70,7 +68,6 @@ export const downloadExcelReport = async (req, res) => {
       );
     }
 
-    // Check Vendor collection
     const vendorRecords = await Vendor.find({ _id: { $in: ids }, siteId: siteQuery });
     if (vendorRecords.length > 0) {
       finalData = finalData.concat(
@@ -85,17 +82,14 @@ export const downloadExcelReport = async (req, res) => {
       );
     }
 
-    // If no matching records found
     if (finalData.length === 0) {
       return res.status(404).json({ message: "No matching records found for the given siteId" });
     }
 
-    // Convert data to Excel
     const worksheet = XLSX.utils.json_to_sheet(finalData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
 
-    // Generate Excel file and send response
     const excelBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
     res.setHeader("Content-Disposition", "attachment; filename=DataReport.xlsx");
     res.type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
