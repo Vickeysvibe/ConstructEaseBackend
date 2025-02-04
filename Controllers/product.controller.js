@@ -1,10 +1,14 @@
 import Products from "../Models/Products.model.js";
 import PurchaseOrders from "../Models/PurchaseOrders.model.js";
+import XLSX from "xlsx";
+
 
 export const createProduct = async (req, res) => {
   try {
     const { name, description, category, unit } = req.body;
     const { siteId } = req.query;
+    console.log(req.body)
+    console.log(req.query)
 
     if (!name || !description || !category || !unit || !siteId) {
       return res.status(400).json({ message: "All fields are required" });
@@ -32,6 +36,7 @@ export const createProduct = async (req, res) => {
       product: newProduct,
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       message: "Internal server error",
       error: error.message,
@@ -144,6 +149,7 @@ export const uploadExcel = async (req, res) => {
       .status(200)
       .json({ message: "Products uploaded successfully", products });
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       message: error.message,
       redirectUrl: "http://.....",

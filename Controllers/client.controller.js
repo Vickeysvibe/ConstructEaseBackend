@@ -6,6 +6,7 @@ export const createClient = async (req, res) => {
     try {
         const { name, phoneNo, address, panGstNo } = req.body;
         const { siteId } = req.query; 
+        console.log(siteId)
         if (!siteId) {
             return res.status(400).json({ error: "Site ID is required in the query" });
         }
@@ -16,6 +17,7 @@ export const createClient = async (req, res) => {
         res.status(201).json
         ({ message: "Client created successfully", client: newClient });
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             message: error.message,
             redirectUrl: 'http://.....',
@@ -62,6 +64,7 @@ export const getAllClients = async (req, res) => {
 
         res.status(200).json(clients);
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             message: error.message,
             redirectUrl: 'http://.....',

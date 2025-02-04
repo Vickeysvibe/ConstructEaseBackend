@@ -32,7 +32,7 @@ export const login = async (req, res) => {
     const scope = user.scope ? "global" : "local";
     const token = await generateJwt(user, role, scope);
 
-    return res.status(200).json({ token, user });
+    return res.status(200).json({ token, user,role });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

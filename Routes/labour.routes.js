@@ -12,11 +12,11 @@ import verifySite from "../Middlewares/verifysite.middleware.js";
 
 const router = express.Router();
 
-router.post("/create", verifyToken,verifySite,createLabour);
-router.put("/update-labour/:labourId", verifyToken,verifySite, updateLabour);
-router.get("/getAll", verifyToken,verifySite, getAllLabours);
-router.get("/getById/:labourId", verifyToken,verifySite, getLabourById);
-router.post("/upload", verifyToken,verifySite, uploadExcel);
-router.delete("/labours/:labourId",verifyToken,verifySite, deleteLabour); 
+router.post("/create", verifyToken, verifySite, createLabour);
+router.put("/update-labour/:labourId", verifyToken, verifySite, updateLabour);
+router.get("/getAll", verifyToken, verifySite, getAllLabours);
+router.get("/getById/:labourId", verifyToken, verifySite, getLabourById);
+router.post("/upload", verifyToken, verifySite, uploadExcel);
+router.delete("/labours/:labourId", verifyToken, verifySite, deleteLabour);
 
 export default router;

@@ -1,17 +1,64 @@
-import WorksModel from "../Models/Works.model";
+import SitesModel from "../Models/Sites.model.js";
+import WorksModel from "../Models/Works.model.js";
 
 export const createWorks = async (req, res) => {
   try {
-    const { title, description, date, additionalSites, siteId } = req.body;
-    const newWork = new WorksModel({
+    const { id, title, description, date, additionalCols } = req.body;
+    const { siteId } = req.body;
+
+    console.log(req.body);
+
+    if (!siteId || !title || !description || !date) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const site = await SitesModel.findById(siteId);
+    if (!site) {
+      return res.status(404).json({ message: "Site not found" });
+    }
+
+    if (id) {
+      const existingTodo = await WorksModel.findById(id);
+      if (!existingTodo) {
+        return res.status(404).json({ message: "Todo not found" });
+      }
+      existingTodo.title = title;
+      existingTodo.description = description;
+      existingTodo.date = date;
+      existingTodo.additionalCols = additionalCols || {};
+      await existingTodo.save();
+      res
+        .status(200)
+        .json({ message: "Todo updated successfully", work: existingTodo });
+      return;
+    }
+    const newColumns = Object.keys(additionalCols || {});
+    if (newColumns.length > 0) {
+      const existingTodos = await WorksModel.find({ siteId }).lean();
+
+      if (existingTodos.length > 0) {
+        const updateFields = {};
+        newColumns.forEach((col) => {
+          if (!Object.keys(existingTodos[0].additionalCols).includes(col))
+            updateFields[`additionalCols.${col}`] = "";
+        });
+
+        await WorksModel.updateMany({ siteId }, { $set: updateFields });
+      }
+    }
+
+    const newTodo = new WorksModel({
       title,
       description,
       date,
-      additionalSites,
+      additionalCols: additionalCols || {},
       siteId,
     });
-    const savedWork = await newWork.save();
-    res.status(200).json(savedWork);
+
+    await newTodo.save();
+    res
+      .status(201)
+      .json({ message: "Todo created successfully", todo: newTodo });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -190,12 +237,10 @@ export const deleteColumn = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        message: "An error occurred while deleting the column.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "An error occurred while deleting the column.",
+      error: error.message,
+    });
   }
 };
 

@@ -6,22 +6,42 @@ import {
   getSupervisorById,
   uploadExcel,
   deleteSupervisor,
+  getGlobalSupervisors,
+  createGloablSupervisor,
 } from "../Controllers/supervisor.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 import onlyForEngineers from "../Middlewares/onlyForEngineers.middleware.js";
 
 const router = express.Router();
 
-router.post("/create", verifyToken,onlyForEngineers, createSupervisor);
+router.post("/create", verifyToken, createSupervisor);
 
-router.put("/update/:supervisorId", verifyToken,onlyForEngineers, updateSupervisor);
+router.post("/create-global", verifyToken, createGloablSupervisor);
 
-router.get("/getsuppervisors/:siteId", verifyToken,onlyForEngineers, getSupervisorsBySite);
+router.put(
+  "/update/:supervisorId",
+  verifyToken,
+  onlyForEngineers,
+  updateSupervisor
+);
 
-router.get("/getbyid/:supervisorId", verifyToken,onlyForEngineers, getSupervisorById);
+router.get("/getsuppervisors", verifyToken, getSupervisorsBySite);
+router.get("/getGlobalSupervisors", verifyToken, getGlobalSupervisors);
 
-router.post("/upload", verifyToken,onlyForEngineers, uploadExcel);
+router.get(
+  "/getbyid/:supervisorId",
+  verifyToken,
+  onlyForEngineers,
+  getSupervisorById
+);
 
-router.delete("/deletesupervisor/:supervisorId",verifyToken,onlyForEngineers, deleteSupervisor); 
+router.post("/upload", verifyToken, onlyForEngineers, uploadExcel);
+
+router.delete(
+  "/deletesupervisor/:supervisorId",
+  verifyToken,
+  onlyForEngineers,
+  deleteSupervisor
+);
 
 export default router;
