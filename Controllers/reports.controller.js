@@ -1,16 +1,17 @@
 import LabourAttendanceModel from "../Models/LabourAttendance.model.js";
 import XLSX from "xlsx";
 import mongoose from "mongoose";
+import express from "express" // Or import express from 'express';
+const app = express();
+
+app.use(express.json()); 
 
 export const laborReport = async (req, res) => {
   try {
     const { siteId, startDate, endDate, laborCategory, subCategory } = req.body;
 
-    // Validate input
-    if (!siteId || !startDate || !endDate) {
-      return res
-        .status(400)
-        .json({ message: "siteId, startDate, and endDate are required" });
+    if (!req.body.siteId || !req.body.startDate || !req.body.endDate) {
+      return res.status(400).json({ message: "siteId, startDate, and endDate are required" });
     }
 
     // Convert dates

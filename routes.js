@@ -16,6 +16,9 @@ import attendance from "./Routes/attendance.routes.js";
 import works from "./Routes/works.routes.js";
 import testing from "./testing/testing.routes.js";
 import attendanceRoutes from "./Routes/attendance.routes.js";
+import download from "./Routes/download.routes.js";
+
+
 export const routing = (app) => {
   app.use("/api/auth", auth);
   app.use("/api/client", clientRoutes);
@@ -28,10 +31,12 @@ export const routing = (app) => {
   app.use("/api/purchase", PurchaseOrders);
   app.use("/api/materials", materials);
   app.use("/api/sites", sites);
+  app.use("/api/download",download);
   //   app.use("/api/testing", testing);
   app.use("/api/todo", todoRoutes);
   app.use("/api/work", works);
   app.use("/api/notes", notes);
   app.use("/api/reports", reports);
   app.use("/api/testing", testing);
+
 };
