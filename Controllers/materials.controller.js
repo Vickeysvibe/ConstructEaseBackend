@@ -10,15 +10,22 @@ export const getAllMaterialInwards = async (req, res) => {
       .populate({
         path: "POid",
         select: "vendorId",
-        populate: { path: "vendorId" },
-      })
-      .populate({
-        path: "materials",
-        populate: { path: "productId", select: "name price" },
+        populate: { path: "vendorId", select: "name" },
       })
       .lean();
+    const data = materials.map((mat) => {
+      const formattedMaterial = {};
+      formattedMaterial.MIid = mat._id;
+      formattedMaterial.POid = mat.POid._id;
+      formattedMaterial.vendorName = mat.POid.vendorId.name;
+      formattedMaterial.subTotal = mat.subTotal;
+      formattedMaterial.grandTotal = mat.grandTotal;
+      formattedMaterial.materials = mat.materials.length;
+      formattedMaterial.date = mat.createdAt;
+      return formattedMaterial;
+    });
 
-    res.status(200).json(materials);
+    res.status(200).json(data);
   } catch (err) {
     console.log(err);
     res.status(500).json(err);
@@ -30,17 +37,18 @@ export const getMaterialInwardById = async (req, res) => {
   try {
     const { MIid } = req.params;
     const { siteId } = req.query;
+    console.log(siteId, MIid);
     if (!MIid || !siteId)
       return res.status(400).json({ message: "MI ID and siteId is required" });
-    const MI = await MaterialInwadsModel.find({ siteId })
+    const MI = await MaterialInwadsModel.findOne({ siteId, _id: MIid })
       .populate({
         path: "POid",
-        select: "vendorId",
+        select: "vendorId transport date",
         populate: { path: "vendorId" },
       })
       .populate({
         path: "materials",
-        populate: { path: "productId", select: "name price" },
+        populate: { path: "productId", select: "name unit description" },
       })
       .lean();
     res.status(200).json(MI);
@@ -124,10 +132,8 @@ export const editMaterial = async (req, res) => {
     const mat = await MaterialsModel.findById(matId);
     if (!mat) return res.status(404).json({ message: "Material not found" });
     const { usedQty } = req.body;
-    console.log(typeof usedQty);
-    console.log(usedQty);
     mat.usedQty = usedQty;
-    mat.availableQty = mat.availableQty - usedQty;
+    mat.availableQty = mat.suppliedQty - usedQty;
     await mat.save();
     res.status(200).json(mat);
   } catch (error) {

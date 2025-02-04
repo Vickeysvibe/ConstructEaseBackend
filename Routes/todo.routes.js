@@ -22,7 +22,7 @@ router.put("/updatecolumn", editColumn);
 
 router.post("/addcolumn", addColumn);
 
-router.delete("/deltecolumn", deleteColumn);
+router.delete("/deletecolumn", deleteColumn);
 
 router.get("/getbyid/:todoId", getTodoById);
 
