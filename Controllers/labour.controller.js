@@ -103,6 +103,7 @@ export const deleteLabour = async (req, res) => {
 
         res.status(200).json({ message: "Labour marked as deleted successfully", labour: updatedLabour });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };

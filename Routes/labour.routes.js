@@ -17,6 +17,6 @@ router.put("/update-labour/:labourId", verifyToken, verifySite, updateLabour);
 router.get("/getAll", verifyToken, verifySite, getAllLabours);
 router.get("/getById/:labourId", verifyToken, verifySite, getLabourById);
 router.post("/upload", verifyToken, verifySite, uploadExcel);
-router.delete("/labours/:labourId", verifyToken, verifySite, deleteLabour);
+router.delete("/delete/:labourId", verifyToken, verifySite, deleteLabour);
 
 export default router;
