@@ -233,7 +233,6 @@ export const deleteColumn = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 export const editColumn = async (req, res) => {
   try {
     const { siteId } = req.query;
@@ -257,15 +256,17 @@ export const editColumn = async (req, res) => {
       return res.status(404).json({ message: "No todos found for this site" });
     }
 
-    const updateFields = {};
-    updateFields[
-      `additionalCols.${newColumnName}`
-    ] = `$additionalCols.${oldColumnName}`;
-
-    await Todos.updateMany(
-      { siteId },
-      { $set: updateFields, $unset: { [`additionalCols.${oldColumnName}`]: 1 } }
-    );
+    // Rename additionalCols key properly
+    await Todos.updateMany({ siteId }, [
+      {
+        $set: {
+          [`additionalCols.${newColumnName}`]: `$additionalCols.${oldColumnName}`,
+        },
+      },
+      {
+        $unset: [`additionalCols.${oldColumnName}`],
+      },
+    ]);
 
     res.status(200).json({
       message: `Column '${oldColumnName}' renamed to '${newColumnName}' successfully for site ${siteId}`,

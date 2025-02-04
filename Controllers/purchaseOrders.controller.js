@@ -7,14 +7,22 @@ import VendorsModel from "../Models/Vendors.model.js";
 import fs from "fs";
 import puppeteer from "puppeteer";
 import Handlebars from "handlebars";
+import MaterialInwards from "../models/MaterialInwads.model.js";
 // get all purchase orders for the site
 export const getAllPos = async (req, res) => {
   try {
-    const { siteId } = req.query;
+    const { siteId, mi } = req.query;
     const pos = await PurchaseOrdersModel.find({ siteId })
       .populate("vendorId", "name")
       .lean();
     let data = [];
+    if (mi) {
+      const MIS = await MaterialInwards.find({ POid: pos._id }).select("POid");
+      data = pos.filter((po) => {
+        return MIS.includes(!po._id);
+      });
+      return res.status(200).json(data);
+    }
     pos.map((po) => {
       const d = {
         POid: po._id,
@@ -25,7 +33,6 @@ export const getAllPos = async (req, res) => {
       };
       data.push(d);
     });
-
     res.status(200).json(data);
   } catch (error) {
     console.log(error);
@@ -40,17 +47,23 @@ export const getAllPrs = async (req, res) => {
   try {
     const { siteId } = req.query;
     const prs = await PurchaseReturnsModel.find({ siteId })
-      .populate("POid", "vendorId")
-      .populate("POid.vendorId", "name")
+      .populate({
+        path: "POid",
+        populate: {
+          path: "vendorId",
+          select: "name",
+        },
+      })
       .lean();
+    console.log(prs);
     let data = [];
     prs.map((po) => {
       const d = {
-        POid: po._id,
+        id: po._id,
         vendorName: po?.POid.vendorId?.name || "unknown",
         date: po?.POid.date,
         transport: po.POid.transport,
-        orderCount: po.POid.order.length,
+        orderCount: po.order.length,
       };
       data.push(d);
     });
@@ -86,23 +99,35 @@ export const getPo = async (req, res) => {
 export const getPoForPr = async (req, res) => {
   try {
     const { poid } = req.params;
-    const pos = await PurchaseOrdersModel.findById(poid).populate(
-      "vendorId siteId"
-    );
-    let materials = [];
-    pos.order.forEach(async (item) => {
-      const mat = await MaterialsModel.find({
-        productId: item.productId,
-      }).populate("productId");
-      if (mat.length > 0) {
-        materials.push(mat);
-      }
-    });
-    if (!pos.siteId)
-      return res.status(404).json({ message: "No purchase orders found" });
-    res.status(200).json({ pos: pos, materials: materials });
+
+    // Fetch the purchase order with vendor and site details
+    const pos = await PurchaseOrdersModel.findById(poid)
+      .populate("vendorId siteId")
+      .lean();
+
+    if (!pos) {
+      return res.status(404).json({ message: "Purchase order not found" });
+    }
+
+    if (!pos.siteId) {
+      return res
+        .status(404)
+        .json({ message: "No site associated with this purchase order" });
+    }
+
+    // Extract product IDs from the order
+    const productIds = pos.order.map((item) => item.productId);
+
+    // Fetch all related materials in one query (optimized)
+    const materials = await MaterialsModel.find({
+      productId: { $in: productIds },
+    })
+      .populate("productId")
+      .lean();
+
+    res.status(200).json({ pos, materials });
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching purchase order:", error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
@@ -229,10 +254,14 @@ export const CreatePo = async (req, res) => {
 export const CreatePr = async (req, res) => {
   try {
     const { siteId } = req.query;
-    const { vendorId, subTotal, grandTotal, tax, order } = req.body;
+    const { vendorId, subTotal, grandTotal, tax, order, template, POid } =
+      req.body;
+
+    console.log(req.body);
     if (order.length === 0 || !vendorId || !subTotal || !grandTotal || !tax)
       return res.status(400).json({ message: "fill all the fields" });
     const pr = await PurchaseReturnsModel.create({
+      POid: POid,
       siteId,
       vendorId,
       subTotal,
@@ -246,6 +275,7 @@ export const CreatePr = async (req, res) => {
       .populate("vendorId siteId")
       .populate("order.productId")
       .populate("siteId.engineerId");
+
     console.log(PurOrder);
 
     // // Generate HTML from Template

@@ -16,6 +16,7 @@ const PurchaseReturnSchema = new mongoose.Schema(
         },
         suppliedQty: { type: Number, required: true },
         unitPrice: { type: Number, required: true },
+        returnQty: { type: Number, required: true },
       },
     ],
     subTotal: { type: Number, required: true },

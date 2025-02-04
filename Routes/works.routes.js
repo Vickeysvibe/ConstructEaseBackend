@@ -3,6 +3,8 @@ import { verifyToken } from "../Middlewares/auth.middleware.js";
 import {
   createColumns,
   createWorks,
+  deleteColumn,
+  deleteWork,
   editColumn,
   editWork,
   getAllWorks,

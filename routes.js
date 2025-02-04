@@ -13,6 +13,7 @@ import auth from "./Routes/auth.routes.js";
 import materials from "./Routes/materials.routes.js";
 import paymentRoutes from "./Routes/Payments.routes.js";
 import attendance from "./Routes/attendance.routes.js";
+import works from "./Routes/works.routes.js";
 import testing from "./testing/testing.routes.js";
 import attendanceRoutes from "./Routes/attendance.routes.js";
 export const routing = (app) => {
@@ -29,6 +30,7 @@ export const routing = (app) => {
   app.use("/api/sites", sites);
   //   app.use("/api/testing", testing);
   app.use("/api/todo", todoRoutes);
+  app.use("/api/work", works);
   app.use("/api/notes", notes);
   app.use("/api/reports", reports);
   app.use("/api/testing", testing);

@@ -132,10 +132,8 @@ export const editMaterial = async (req, res) => {
     const mat = await MaterialsModel.findById(matId);
     if (!mat) return res.status(404).json({ message: "Material not found" });
     const { usedQty } = req.body;
-    console.log(typeof usedQty);
-    console.log(usedQty);
     mat.usedQty = usedQty;
-    mat.availableQty = mat.availableQty - usedQty;
+    mat.availableQty = mat.suppliedQty - usedQty;
     await mat.save();
     res.status(200).json(mat);
   } catch (error) {
