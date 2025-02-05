@@ -21,7 +21,7 @@ export const downloadExcelReport = async (req, res) => {
 
 
     let siteQuery = siteId;  
-    if (mongoose.Types.ObjectId.isValid(siteId)) {
+    if (mongoose.Types.ObjectId.isValid(siteId)) {``
       siteQuery = new mongoose.Types.ObjectId(siteId);
     }
 
