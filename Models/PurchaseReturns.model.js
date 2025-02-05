@@ -9,13 +9,11 @@ const PurchaseReturnSchema = new mongoose.Schema(
     },
     order: [
       {
-        productId: {
+        materialId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Products",
+          ref: "Materials",
           required: true,
         },
-        suppliedQty: { type: Number, required: true },
-        unitPrice: { type: Number, required: true },
         returnQty: { type: Number, required: true },
       },
     ],

@@ -8,34 +8,51 @@ import fs from "fs";
 import puppeteer from "puppeteer";
 import Handlebars from "handlebars";
 import MaterialInwards from "../models/MaterialInwads.model.js";
+import path from "path";
 // get all purchase orders for the site
 export const getAllPos = async (req, res) => {
   try {
     const { siteId, mi } = req.query;
+
+    if (!siteId) {
+      return res.status(400).json({ message: "Site ID is required" });
+    }
+
     const pos = await PurchaseOrdersModel.find({ siteId })
       .populate("vendorId", "name")
       .lean();
+
+    console.log(pos);
     let data = [];
+
     if (mi) {
-      const MIS = await MaterialInwards.find({ POid: pos._id }).select("POid");
-      data = pos.filter((po) => {
-        return MIS.includes(!po._id);
-      });
+      const MIS = await MaterialInwards.find({ siteId }).select("POid");
+      const miPOids = new Set(MIS.map((m) => m.POid.toString()));
+
+      data = pos
+        .filter((po) => !miPOids.has(po._id.toString()))
+        .map((po) => ({
+          POid: po._id,
+          vendorName: po?.vendorId?.name || "unknown",
+          date: po.date,
+          transport: po.transport,
+          orderCount: po.order.length,
+        }));
+
       return res.status(200).json(data);
     }
-    pos.map((po) => {
-      const d = {
-        POid: po._id,
-        vendorName: po?.vendorId?.name || "unknown",
-        date: po.date,
-        transport: po.transport,
-        orderCount: po.order.length,
-      };
-      data.push(d);
-    });
+
+    data = pos.map((po) => ({
+      POid: po._id,
+      vendorName: po?.vendorId?.name || "unknown",
+      date: po.date,
+      transport: po.transport,
+      orderCount: po.order.length,
+    }));
+
     res.status(200).json(data);
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching purchase orders:", error);
     res
       .status(500)
       .json({ message: "Something went wrong", error: error.message });
@@ -139,9 +156,16 @@ export const getPr = async (req, res) => {
   try {
     const { prid } = req.params;
     const prs = await PurchaseReturnsModel.findById(prid)
-      .populate("POid", "vendorId")
-      .populate("POid.vendorId POid.siteId")
-      .populate("order.productId");
+      .populate({
+        path: "POid",
+        populate: {
+          path: "vendorId",
+        },
+      })
+      .populate({
+        path: "order.materialId",
+        populate: "productId",
+      });
     if (!prs.siteId)
       return res.status(404).json({ message: "No purchase returns found" });
     res.status(200).json(prs);
@@ -253,61 +277,97 @@ export const CreatePo = async (req, res) => {
 //create purchase order
 export const CreatePr = async (req, res) => {
   try {
+    const { edit } = req.query;
     const { siteId } = req.query;
-    const { vendorId, subTotal, grandTotal, tax, order, template, POid } =
-      req.body;
+    const { vendorId, subTotal, grandTotal, tax, order, POid } = req.body;
 
-    console.log(req.body);
-    if (order.length === 0 || !vendorId || !subTotal || !grandTotal || !tax)
-      return res.status(400).json({ message: "fill all the fields" });
-    const pr = await PurchaseReturnsModel.create({
-      POid: POid,
-      siteId,
-      vendorId,
-      subTotal,
-      grandTotal,
-      tax,
-      order,
-    });
-    await pr.save();
+    // Validate required fields
+    if (!order?.length || !vendorId || !subTotal || !grandTotal || tax) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-    const PurOrder = await PurchaseOrdersModel.findById(pr._id)
-      .populate("vendorId siteId")
-      .populate("order.productId")
-      .populate("siteId.engineerId");
+    if (edit) {
+      // Updating an existing purchase return
+      const updatedPR = await PurchaseReturnsModel.findByIdAndUpdate(
+        POid,
+        { subTotal, grandTotal, tax, order },
+        { new: true }
+      );
 
-    console.log(PurOrder);
+      if (!updatedPR) {
+        return res.status(404).json({ message: "Purchase return not found" });
+      }
 
-    // // Generate HTML from Template
-    // const generateHTML = (templatePath, data) => {
-    //   const templateSource = fs.readFileSync(templatePath, "utf8");
-    //   const template = Handlebars.compile(templateSource);
-    //   return template(data);
-    // };
+      return res
+        .status(200)
+        .json({ message: "Purchase return updated", data: updatedPR });
+    } else {
+      // Creating a new purchase return
+      const matIds = await Promise.all(
+        order.map(async (product) => {
+          const updatedMaterial = await MaterialsModel.findByIdAndUpdate(
+            product.MatId,
+            { availableQty: product.availableQty },
+            { new: true }
+          );
 
-    // // Generate PDF and Return as Buffer
-    // const generatePDFBuffer = async (html) => {
-    //   const browser = await puppeteer.launch();
-    //   const page = await browser.newPage();
-    //   await page.setContent(html, { waitUntil: "load" });
-    //   const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
-    //   await browser.close();
-    //   return pdfBuffer;
-    // };
+          if (!updatedMaterial) {
+            throw new Error(`Material with ID ${product.MatId} not found`);
+          }
 
-    // // Main Execution
-    // const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
-    // const pdfBuffer = await generatePDFBuffer(html);
-    // // Set response headers
-    // res.setHeader("Content-Type", "application/pdf");
-    // res.setHeader(
-    //   "Content-Disposition",
-    //   "attachment; filename=purchase_order.pdf"
-    // );
+          return {
+            materialId: updatedMaterial._id,
+            returnQty: product.returnQty,
+          };
+        })
+      );
 
-    // // Send PDF Buffer as response
-    // res.send(pdfBuffer);
-    res.status(200).json(pr);
+      const newPR = await PurchaseReturnsModel.create({
+        POid,
+        siteId,
+        vendorId,
+        subTotal,
+        grandTotal,
+        tax,
+        order: matIds,
+      });
+
+      // const PurOrder = await PurchaseOrdersModel.findById(pr._id)
+      //   .populate("vendorId siteId")
+      //   .populate("order.productId")
+      //   .populate("siteId.engineerId");
+
+      // // Generate HTML from Template
+      // const generateHTML = (templatePath, data) => {
+      //   const templateSource = fs.readFileSync(templatePath, "utf8");
+      //   const template = Handlebars.compile(templateSource);
+      //   return template(data);
+      // };
+
+      // // Generate PDF and Return as Buffer
+      // const generatePDFBuffer = async (html) => {
+      //   const browser = await puppeteer.launch();
+      //   const page = await browser.newPage();
+      //   await page.setContent(html, { waitUntil: "load" });
+      //   const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+      //   await browser.close();
+      //   return pdfBuffer;
+      // };
+
+      // // Main Execution
+      // const html = generateHTML("../PoTemplates/template1.html", { PurOrder });
+      // const pdfBuffer = await generatePDFBuffer(html);
+      // // Set response headers
+      // res.setHeader("Content-Type", "application/pdf");
+      // res.setHeader(
+      //   "Content-Disposition",
+      //   "attachment; filename=purchase_order.pdf"
+      // );
+
+      // // Send PDF Buffer as response
+      // res.send(pdfBuffer);
+      res.status(200).json("over");
+    }
   } catch (error) {
     console.log(error);
     res
