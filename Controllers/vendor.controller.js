@@ -48,11 +48,11 @@ export const getAllVendors = async (req, res) => {
         const { siteId } = req.query;
         let vendors;
 
-        if (siteId) {
-            vendors = await Vendors.find({ siteId }).populate("siteId", "name");
-        } else {
-            vendors = await Vendors.find().populate("siteId", "name");
-        }
+        
+        vendors = await Vendors.find({ siteId }).populate("siteId", "name");
+    
+        
+        console.log(vendors)
 
         res.status(200).json(vendors);
     } catch (error) {
