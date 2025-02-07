@@ -6,11 +6,12 @@ import {
   editPayment,
   getPayments,
 } from "../Controllers/payments.controller.js";
+import verifySite from "../Middlewares/verifysite.middleware.js";
 
 const router = express.Router();
 
-router.get("/getPayments", verifyToken, getPayments);
-router.post("/createPayment", verifyToken, createPayment);
-router.put("editPayment/:id", verifyToken, editPayment);
-router.delete("deletePayment/:id", verifyToken, deletePayment);
+router.get("/getPayments", verifyToken,verifySite,getPayments);
+router.post("/createPayment", verifyToken, verifySite,createPayment);
+router.put("editPayment/:id", verifyToken, verifySite,editPayment);
+router.delete("/deletePayment/:id",verifyToken,verifySite,deletePayment);
 export default router;

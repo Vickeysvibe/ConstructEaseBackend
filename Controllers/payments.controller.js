@@ -1,5 +1,6 @@
   import PaymentsModel from "../Models/Payments.model.js";
 
+
 export const getPayments = async (req, res) => {
   try {
     const { siteId, type } = req.query;
@@ -17,6 +18,7 @@ export const createPayment = async (req, res) => {
   try {
     const { siteId, type } = req.query;
     let date,
+      name,
       description,
       amount,
       quantity,
@@ -28,13 +30,14 @@ export const createPayment = async (req, res) => {
 
     switch (type) {
       case "labour":
-        ({ date, description, amount } = req.body);
-        if (!date || !description || !amount)
+        ({ name,date, description, amount } = req.body);
+        if (!date || !description || !amount || !name)
           return res
             .status(400)
             .json({ msg: "Missing date, description, or amount" });
         const newLabourPayment = new PaymentsModel({
           siteId,
+          name,
           type,
           date,
           description,
@@ -44,9 +47,10 @@ export const createPayment = async (req, res) => {
         return res.status(200).json(newLabourPayment);
 
       case "vendor":
-        ({ date, description, amount, quantity, unit, costPerUnit } = req.body);
+        ({ date,name, description, amount, quantity, unit, costPerUnit } = req.body);
         if (
           !date ||
+          !name ||
           !description ||
           !amount ||
           !quantity ||
@@ -60,6 +64,7 @@ export const createPayment = async (req, res) => {
           siteId,
           type,
           date,
+          name,
           description,
           amount,
           quantity,
@@ -70,8 +75,8 @@ export const createPayment = async (req, res) => {
         return res.status(200).json(newVendorPayment);
 
       case "client":
-        ({ date, paymentReceived, paymentAs, paymentBy } = req.body);
-        if (!date || !paymentReceived || !paymentAs || !paymentBy)
+        ({ date,name,paymentReceived, paymentAs, paymentBy } = req.body);
+        if (!date ||!name|| !paymentReceived || !paymentAs || !paymentBy)
           return res.status(400).json({
             msg: "Missing date, paymentReceived, paymentAs, or paymentBy",
           });
@@ -79,6 +84,7 @@ export const createPayment = async (req, res) => {
           siteId,
           type,
           date,
+          name,
           paymentReceived,
           paymentAs,
           paymentBy,
@@ -215,10 +221,25 @@ export const editPayment = async (req, res) => {
 export const deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const payment = await PaymentsModel.findByIdAndDelete(id);
-    if (!payment) return res.status(404).json({ msg: "Payment not found" });
-    res.status(200).json(payment);
+    const { siteId, type } = req.query;  
+
+    if (!siteId || !type) {
+      return res.status(400).json({ msg: "Missing siteId or type" });
+    }
+
+    const payment = await PaymentsModel.findOneAndDelete({
+      _id: id,
+      siteId: siteId,
+      type: type
+    });
+
+    if (!payment) {
+      return res.status(404).json({ msg: "Payment not found" });
+    }
+
+    res.status(200).json({ msg: "Payment deleted successfully", payment });
   } catch (error) {
+    // Handle server error
     res.status(500).json({ msg: error.message });
   }
 };
