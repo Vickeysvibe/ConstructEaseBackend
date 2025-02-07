@@ -94,7 +94,7 @@ export const todayAttendance = async (req, res) => {
     siteId,
     date: dateOnly, // Compare only the date part
   })
-    .populate("attendance.labourId", "name category wagesPerShift")
+    .populate("attendance.labourId", "name category subCategory wagesPerShift")
     .select("attendance");
 
   if (!populatedDoc) {
@@ -112,6 +112,7 @@ export const todayAttendance = async (req, res) => {
     return {
       Name: labour.name,
       Category: labour.category,
+      SubCategory:labour.subCategory,
       Shift: shift,
       WagesPerShift: wagesPerShift,
       Total: total,
@@ -140,6 +141,16 @@ export const getLabours = async (req, res) => {
       wagesPerShift: labour.wagesPerShift,
       id:labour._id
     }));
+    res.status(200).json({
+      labourDetails,
+    });
+  }
+
+    catch (error) {
+      console.error("Error fetching labour data:", error);
+      res.status(500).json({ message: "Internal server error", error });
+    }
+  }
 
     // const subCategoryCounts = await LabourModel.aggregate([
     //   { $match: { siteId: siteId } },
@@ -169,15 +180,44 @@ export const getLabours = async (req, res) => {
     //   },
     // ]);
 
-    res.status(200).json({
-      labourDetails,
-      // subCategoryCounts,
-    });
-  } catch (error) {
-    console.error("Error fetching labour data:", error);
-    res.status(500).json({ message: "Internal server error", error });
-  }
-};
+    export const getSubCategoryCounts = async (req, res) => {
+      try {
+        const { siteId } = req.query;
+    
+        if (!siteId) {
+          return res.status(400).json({ message: "Site ID is required" });
+        }
+    
+        const objectId = new mongoose.Types.ObjectId(siteId);
+    
+        const subCategoryCounts = await LabourModel.aggregate([
+          { $match: { siteId: objectId } }, 
+          {
+            $group: {
+              _id: null,
+              categories: { $addToSet: "$category" },
+              subCategories: { $addToSet: "$subCategory" },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              category: "$categories",
+              subCategory: "$subCategories",
+            },
+          },
+        ]);
+    
+        res.status(200).json(subCategoryCounts[0] || { category: [], subCategory: [] });
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+        res.status(500).json({ message: "Internal server error", error });
+      }
+    };
+    
+    
+    
+
 
 export const updateShift = async (req, res) => {
   try {
@@ -257,5 +297,39 @@ export const getSupervisors = async (req, res) => {
   } catch (error) {
     console.error("Error fetching supervisors:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const deleteTodayAttendance = async (req, res) => {
+  try {
+    const { siteId } = req.query;
+    const { labourId } = req.body;
+
+    if (!siteId || !labourId) {
+      return res.status(400).json({ message: "Site ID and Labour ID are required." });
+    }
+
+    const currentDate = new Date();
+    currentDate.setUTCHours(0, 0, 0, 0); 
+    const dateOnly = currentDate.toISOString().split('T')[0]; 
+
+    const updatedAttendance = await LabourAttendanceModel.findOneAndUpdate(
+      { siteId, date: dateOnly }, 
+      { $pull: { attendance: { labourId } } }, 
+      { new: true } 
+    );
+
+    if (!updatedAttendance) {
+      return res.status(404).json({ message: "No attendance record found for this site on today's date." });
+    }
+
+    res.status(200).json({
+      message: "Labour attendance record removed successfully",
+      updatedAttendance,
+    });
+
+  } catch (error) {
+    console.error("Error deleting labour attendance:", error);
+    res.status(500).json({ message: "Failed to delete labour attendance" });
   }
 };

@@ -3,7 +3,7 @@ import XLSX from "xlsx";
 
 export const paymentReport = async (req, res) => {
   try {
-    const { type } = req.body;
+    const  {type } = req.body;
     const { siteId } = req.query;
 
     if (!type || !["vendor", "client", "labor", "others"].includes(type)) {

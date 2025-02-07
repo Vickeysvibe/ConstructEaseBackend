@@ -14,7 +14,8 @@ export const createClient = async (req, res) => {
         const newClient = new Clients({ name, phoneNo, address, panGstNo, siteId });
         await newClient.save();
 
-        res.status(201).json({ message: "Client created successfully", client: newClient });
+        res.status(201).json
+        ({ message: "Client created successfully", client: newClient });
     } catch (error) {
         console.log(error)
         res.status(500).json({

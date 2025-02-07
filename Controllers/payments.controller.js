@@ -6,6 +6,7 @@ export const getPayments = async (req, res) => {
     if (!siteId || !type)
       return res.status(400).json({ msg: "Missing siteId or type" });
     const payments = await PaymentsModel.find({ siteId, type });
+    console.log(payments)
     res.status(200).json(payments);
   } catch (error) {
     res.status(500).json({ msg: error.message });
