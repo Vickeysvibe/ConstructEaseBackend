@@ -76,6 +76,7 @@ export const getVendorById = async (req, res) => {
 export const uploadExcel = async (req, res) => {
     try {
         const { siteId } = req.query;
+        console.log(req.files)
 
         if (!siteId) {
             return res.status(400).json({ error: "Site ID is required in the query" });
@@ -105,6 +106,7 @@ export const uploadExcel = async (req, res) => {
         await Vendors.insertMany(vendors);
         res.status(200).json({ message: "Vendors uploaded successfully", vendors });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message, redirectUrl: 'http://.....' });
     }
 };
