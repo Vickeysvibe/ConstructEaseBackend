@@ -6,6 +6,7 @@ import {
   getClientById,
   upload,
   deleteClient,
+  downloadClients,
 } from "../Controllers/client.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 import verifySite from "../Middlewares/verifysite.middleware.js";
@@ -23,5 +24,7 @@ router.get("/get/:clientId", verifyToken,verifySite, getClientById); //not neede
 router.post("/upload", verifyToken,verifySite, upload); //yet to be tested
 
 router.delete("/deleteclient/:clientId",verifyToken,verifySite, deleteClient); //tested
+
+router.post('/downloadclient',verifyToken,verifySite,downloadClients)
 
 export default router;

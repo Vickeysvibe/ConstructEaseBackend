@@ -2,6 +2,7 @@ import Supervisors from "../Models/Supervisors.model.js";
 import Sites from "../Models/Sites.model.js";
 import XLSX from "xlsx";
 import SitesModel from "../Models/Sites.model.js";
+import e from "express";
 
 export const createSupervisor = async (req, res) => {
   try {
@@ -297,5 +298,54 @@ export const createGloablSupervisor = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const downloadSupervisors = async (req, res) => {
+  try {
+    const { supervisorIds } = req.body;
+    const { siteId } = req.query;
+
+    if (!siteId) {
+      return res.status(400).json({ error: "Site ID is required in the query" });
+    }
+
+    if (!supervisorIds || !Array.isArray(supervisorIds) || supervisorIds.length === 0) {
+      return res.status(400).json({ error: "Supervisor IDs are required in the request body" });
+    }
+
+    const supervisors = await Supervisors.find({ _id: { $in: supervisorIds } });
+
+    if (supervisors.length === 0) {
+      console.log('m')
+
+      return res.status(404).json({ error: "No supervisors found for the provided IDs and site ID" });
+    }
+
+    const jsonData = supervisors.map(({ name, email, address, phoneNo, role }) => ({
+      name,
+      email,
+      address,
+      phoneNo,
+      role
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(jsonData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Supervisors");
+
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+    res.setHeader("Content-Disposition", 'attachment; filename="supervisors.xlsx"');
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+    res.send(buffer);
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      message: error.message,
+      redirectUrl: 'http://.....',
+    });
   }
 };

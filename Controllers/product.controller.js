@@ -189,3 +189,45 @@ export const deleteProduct = async (req, res) => {
       .json({ message: error.message, redirectUrl: "http://....." });
   }
 };
+
+
+export const downloadProduct = async (req, res) => {
+    try {
+        const { productsIds } = req.body;
+        const { siteId } = req.query;
+
+        if (!siteId) {
+            return res.status(400).json({ error: "Site ID is required in the query" });
+        }
+
+        if (!productsIds || !Array.isArray(productsIds) || productsIds.length === 0) {
+            return res.status(400).json({ error: "Products IDs are required in the request body" });
+        }
+
+        const product = await Products.find({ _id: { $in: productsIds }, siteId });
+
+        if (product.length === 0) {
+            return res.status(404).json({ error: "No products found for the provided IDs and site ID" });
+        }
+
+        const jsonData = product.map(({ name, description, category, unit }) => ({
+          name, description, category, unit
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+        const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+        res.setHeader("Content-Disposition", 'attachment; filename="products.xlsx"');
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        
+        res.send(buffer);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            redirectUrl: 'http://.....',
+        });
+    }
+};

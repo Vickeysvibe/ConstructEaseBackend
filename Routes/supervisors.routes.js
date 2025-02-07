@@ -8,9 +8,11 @@ import {
   deleteSupervisor,
   getGlobalSupervisors,
   createGloablSupervisor,
+  downloadSupervisors,
 } from "../Controllers/supervisor.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 import onlyForEngineers from "../Middlewares/onlyForEngineers.middleware.js";
+
 
 const router = express.Router();
 
@@ -43,5 +45,6 @@ router.delete(
   onlyForEngineers,
   deleteSupervisor
 );
+router.post('/downloadsupervisors',verifyToken,downloadSupervisors);
 
 export default router;

@@ -152,3 +152,48 @@ export const deleteClient = async (req, res) => {
     }
 };
 
+
+export const downloadClients = async (req, res) => {
+    try {
+        const { clientIds } = req.body;
+        const { siteId } = req.query;
+
+        if (!siteId) {
+            return res.status(400).json({ error: "Site ID is required in the query" });
+        }
+
+        if (!clientIds || !Array.isArray(clientIds) || clientIds.length === 0) {
+            return res.status(400).json({ error: "Client IDs are required in the request body" });
+        }
+
+        const clients = await Clients.find({ _id: { $in: clientIds }, siteId });
+
+        if (clients.length === 0) {
+            return res.status(404).json({ error: "No clients found for the provided IDs and site ID" });
+        }
+
+        const jsonData = clients.map(({ name, phoneNo, address, panGstNo, siteId }) => ({
+            name,
+            phoneNo,
+            address,
+            panGstNo,
+            siteId
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Clients");
+
+        const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+        res.setHeader("Content-Disposition", 'attachment; filename="clients.xlsx"');
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        
+        res.send(buffer);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            redirectUrl: 'http://.....',
+        });
+    }
+};

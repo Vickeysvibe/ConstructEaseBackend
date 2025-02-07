@@ -109,4 +109,48 @@ export const deleteLabour = async (req, res) => {
 };
 
 
+export const downloadLabour = async (req, res) => {
+    try {
+        const { labourIds } = req.body;
+        const { siteId } = req.query;
+
+        if (!siteId) {
+            return res.status(400).json({ error: "Site ID is required in the query" });
+        }
+
+        if (!labourIds || !Array.isArray(labourIds) || labourIds.length === 0) {
+            return res.status(400).json({ error: "Labour IDs are required in the request body" });
+        }
+
+        const labour = await Labours.find({ _id: { $in: labourIds }, siteId });
+
+        if (labour.length === 0) {
+            return res.status(404).json({ error: "No labour found for the provided IDs and site ID" });
+        }
+
+        const jsonData = labour.map(({ name, phoneNo, category, subCategory, wagesPerShift }) => ({
+            name,
+            phoneNo,
+            category, 
+            subCategory, 
+            wagesPerShift
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Labours");
+
+        const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+        res.setHeader("Content-Disposition", 'attachment; filename="labour.xlsx"');
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        
+        res.send(buffer);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            redirectUrl: 'http://.....',
+        });
+    }
+};
 

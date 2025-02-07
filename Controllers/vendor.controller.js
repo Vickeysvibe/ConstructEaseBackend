@@ -136,3 +136,48 @@ export const deleteVendor = async (req, res) => {
     }
 };
 
+export const downloadVendor = async (req, res) => {
+    try {
+        const { vendorIds } = req.body;
+        const { siteId } = req.query;
+
+        if (!siteId) {
+            return res.status(400).json({ error: "Site ID is required in the query" });
+        }
+
+        if (!vendorIds || !Array.isArray(vendorIds) || vendorIds.length === 0) {
+            return res.status(400).json({ error: "Vendor IDs are required in the request body" });
+        }
+
+        const vendors = await Vendors.find({ _id: { $in: vendorIds }, siteId });
+
+        if (vendors.length === 0) {
+            console.log('no')
+            return res.status(404).json({ error: "No vendors found for the provided IDs and site ID" });
+        }
+
+        const jsonData = vendors.map(({ name, ownerName, address, gstIn, phoneNo }) => ({
+            name,
+            ownerName,
+            address,
+            gstIn,
+            phoneNo
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(jsonData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Vendors");
+
+        const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+        res.setHeader("Content-Disposition", 'attachment; filename="vendors.xlsx"');
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        
+        res.send(buffer);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+            redirectUrl: 'http://.....',
+        });
+    }
+};
