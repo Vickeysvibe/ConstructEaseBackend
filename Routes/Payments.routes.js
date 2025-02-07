@@ -6,7 +6,7 @@ import {
   editPayment,
   getPayments,
 } from "../Controllers/payments.controller.js";
-import verifySite from "../Middlewares/verifysite.middleware.js";
+import verifySite from "../Middlewares/verifySite.middleware.js";
 
 const router = express.Router();
 

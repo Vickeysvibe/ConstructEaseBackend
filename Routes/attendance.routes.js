@@ -9,7 +9,7 @@ import {
 } from "../Controllers/labourAttendance.controller.js";
 import { verifyToken } from "../Middlewares/auth.middleware.js";
 import { paymentReport } from "../Controllers/paymentReport.controller.js";
-import verifySite from "../Middlewares/verifysite.middleware.js";
+import verifySite from "../Middlewares/verifySite.middleware.js";
 import onlyForEngineers from "../Middlewares/onlyForEngineers.middleware.js";
 
 const router = express.Router();

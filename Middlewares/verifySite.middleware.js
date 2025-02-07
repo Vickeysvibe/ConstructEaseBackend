@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const verifySite = async (req, res, next) => {
+export const verifySite = async (req, res, next) => {
     try {
         const { supervisorId, engineerId, role, scope } = req.user;
         console.log("role",role);
@@ -46,4 +46,4 @@ const verifySite = async (req, res, next) => {
     }
 };
 
-export default verifySite;
+ 
