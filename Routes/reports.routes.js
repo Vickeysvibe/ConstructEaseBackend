@@ -3,6 +3,7 @@ import { verifyToken } from "../Middlewares/auth.middleware.js";
 import { laborReport } from "../Controllers/reports.controller.js";
 import { paymentReport } from "../Controllers/paymentReport.controller.js";
 import { overallMaterialReport, SingleVendorReport } from '../Controllers/materialwiseReport.controller.js';
+import {getSubCategoryCounts} from '../Controllers/labourAttendance.controller.js'
 
 
 
@@ -12,6 +13,7 @@ router.post("/labourReport", verifyToken, laborReport);
 router.post("/paymentreport",verifyToken,paymentReport);
 router.post('/vendor-report', verifyToken,SingleVendorReport);
 router.post('/overall-material',verifyToken, overallMaterialReport);
+router.get("/labourlist",verifyToken,getSubCategoryCounts);
 
 
 export default router;
