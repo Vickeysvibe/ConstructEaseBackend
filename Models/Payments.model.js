@@ -14,6 +14,7 @@ const PaymentSchema = new mongoose.Schema(
     },
     date: { type: Date, default: Date.now, required: true },
     description: { type: String, default: "" },
+    name:{type:String,default:""},
     amount: { type: Number, default: 0 },
     quantity: { type: Number, default: 0 },
     unit: { type: String, default: "" },
